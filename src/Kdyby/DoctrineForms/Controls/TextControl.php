@@ -20,6 +20,8 @@ use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\RadioList;
 use Nette\Forms\Controls\SelectBox;
+use Nette\Forms\Controls\CheckboxList;
+use Nette\Forms\Controls\MultiSelectBox;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 
@@ -92,9 +94,25 @@ class TextControl extends Nette\Object implements IComponentMapper
 			$component->setItems($items);
 		}
 
-		if ($relation = $this->accessor->getValue($entity, $name)) {
+		/** @var MultiSelectBox|CheckboxList $component */
+		if ($component instanceof MultiSelectBox || $component instanceof CheckboxList) {
+			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
+				return FALSE;
+			}
+
 			$UoW = $this->em->getUnitOfWork();
-			$component->setDefaultValue($UoW->getSingleIdentifierValue($relation));
+
+			$value = [];
+			foreach ($collection as $key => $relation) {
+				$value[] = $UoW->getSingleIdentifierValue($relation);
+			}
+			$component->setDefaultValue($value);
+
+		} else {
+			if ($relation = $this->accessor->getValue($entity, $name)) {
+				$UoW = $this->em->getUnitOfWork();
+				$component->setDefaultValue($UoW->getSingleIdentifierValue($relation));
+			}
 		}
 
 		return TRUE;
@@ -167,11 +185,67 @@ class TextControl extends Nette\Object implements IComponentMapper
 		}
 
 		$repository = $this->em->getRepository($this->relatedMetadata($entity, $name)->getName());
-		if ($relation = $repository->find($identifier)) {
-			$meta->setFieldValue($entity, $name, $relation);
+
+		/** @var MultiSelectBox|CheckboxList $component */
+		if ($component instanceof MultiSelectBox || $component instanceof CheckboxList) {
+
+			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
+				return FALSE;
+			}
+
+			$collectionByIds = [];
+			foreach ($collection as $i) {
+				$collectionByIds[] = $i->getId();
+			}
+
+			$identifiers = $identifier;
+			$received = [];
+
+			foreach ($identifiers as $identifier) {
+				if (!in_array($identifier, $collectionByIds)) { // entity was added from the client
+					$collection[] = $relation = $repository->find($identifier);
+				}
+
+				$received[] = $identifier;
+			}
+
+			foreach ($collection as $key => $relation) {
+				if (!in_array($relation->getId(), $received)) {
+					unset($collection[$key]);
+				}
+			}
+
+		} else {
+			if (($relation = $repository->find($identifier))) {
+				$meta->setFieldValue($entity, $name, $relation);
+			}
 		}
 
 		return TRUE;
+	}
+
+
+
+
+	/**
+	 * @param ClassMetadata $meta
+	 * @param object $entity
+	 * @param string $field
+	 * @return Collection
+	 */
+	private function getCollection(ClassMetadata $meta, $entity, $field)
+	{
+		if (!$meta->hasAssociation($field) || $meta->isSingleValuedAssociation($field)) {
+			return FALSE;
+		}
+
+		$collection = $meta->getFieldValue($entity, $field);
+		if ($collection === NULL) {
+			$collection = new ArrayCollection();
+			$meta->setFieldValue($entity, $field, $collection);
+		}
+
+		return $collection;
 	}
 
 }

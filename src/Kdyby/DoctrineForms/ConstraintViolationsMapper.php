@@ -86,7 +86,7 @@ class ConstraintViolationsMapper extends Nette\Object
 				$this->validateContainer($child, $meta->getFieldValue($entity, $field));
 
 			} else {
-				throw new NotImplementedException("To many relation is not yet implemented");
+				//throw new NotImplementedException("To many relation is not yet implemented");
 			}
 		}
 	}

@@ -59,13 +59,15 @@ class ToMany extends Nette\Object implements IComponentMapper
 		$UoW = $em->getUnitOfWork();
 
 		$component->bindCollection($entity, $collection);
-		foreach ($collection as $relation) {
-			if ($id = $UoW->getSingleIdentifierValue($entity)) {
-				$this->mapper->load($relation, $component[$id]);
+		foreach ($collection as $key => $relation) {
+			if ($id = $UoW->getSingleIdentifierValue($relation)) {
+				if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
+					$this->mapper->load($relation, $component[$key]);
+				}
 				continue;
 			}
 
-			$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $collection->indexOf($relation)]);
+			$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
 		}
 
 		return TRUE;
@@ -90,20 +92,26 @@ class ToMany extends Nette\Object implements IComponentMapper
 		$class = $meta->getAssociationTargetClass($component->getName());
 		$relationMeta = $em->getClassMetadata($class);
 
+		$received = [];
+
 		/** @var Nette\Forms\Container $container */
 		foreach ($component->getComponents(FALSE, 'Nette\Forms\Container') as $container) {
 			$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
 			$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
 
-			if (!$relation = $collection->get($name)) { // entity was added from the client
-				if (!$component->isAllowedRemove()) {
-					continue;
-				}
-
+			if ((!$relation = $collection->get($name))) { // entity was added from the client
 				$collection[$name] = $relation = $relationMeta->newInstance();
 			}
 
+			$received[] = $name;
+
 			$this->mapper->save($relation, $container);
+		}
+
+		foreach ($collection as $key => $relation) {
+			if ($component->isAllowedRemove() && !in_array($key, $received)) {
+				unset($collection[$key]);
+			}
 		}
 
 		return TRUE;

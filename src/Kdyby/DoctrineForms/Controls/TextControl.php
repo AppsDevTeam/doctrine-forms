@@ -66,7 +66,7 @@ class TextControl extends Nette\Object implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
-			$component->setValue($this->accessor->getValue($entity, $name));
+			$component->setDefaultValue($this->accessor->getValue($entity, $name));
 			return TRUE;
 		}
 
@@ -94,7 +94,7 @@ class TextControl extends Nette\Object implements IComponentMapper
 
 		if ($relation = $this->accessor->getValue($entity, $name)) {
 			$UoW = $this->em->getUnitOfWork();
-			$component->setValue($UoW->getSingleIdentifierValue($relation));
+			$component->setDefaultValue($UoW->getSingleIdentifierValue($relation));
 		}
 
 		return TRUE;

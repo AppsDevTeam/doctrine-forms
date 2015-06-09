@@ -188,8 +188,10 @@ class ToManyContainer extends Nette\Forms\Container
 			return;
 		}
 
-		foreach (array_keys($this->getHttpData()) as $id) {
-			$this->getComponent($id); // eager initialize
+		if ($this->getHttpData()) {
+			foreach (array_keys($this->getHttpData()) as $id) {
+				$this->getComponent($id); // eager initialize
+			}
 		}
 	}
 

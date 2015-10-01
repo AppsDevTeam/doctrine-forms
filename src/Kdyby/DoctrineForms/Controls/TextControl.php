@@ -18,11 +18,10 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
-use Nette\Forms\Controls\RadioList;
-use Nette\Forms\Controls\SelectBox;
-use Nette\Forms\Controls\CheckboxList;
-use Nette\Forms\Controls\MultiSelectBox;
+use Nette\Forms\Controls\ChoiceControl;
+use Nette\Forms\Controls\MultiChoiceControl;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Doctrine\Common\Collections\ArrayCollection;
 
 
 
@@ -76,8 +75,8 @@ class TextControl extends Nette\Object implements IComponentMapper
 			return FALSE;
 		}
 
-		/** @var SelectBox|RadioList $component */
-		if (($component instanceof SelectBox || $component instanceof RadioList) && !count($component->getItems())) {
+		/** @var ChoiceControl|MultiChoiceControl $component */
+		if (($component instanceof ChoiceControl || $component instanceof MultiChoiceControl) && !count($component->getItems())) {
 			if (!$nameKey = $component->getOption(self::ITEMS_TITLE, FALSE)) {
 				$path = $component->lookupPath('Nette\Application\UI\Form');
 				throw new Kdyby\DoctrineForms\InvalidStateException(
@@ -94,8 +93,8 @@ class TextControl extends Nette\Object implements IComponentMapper
 			$component->setItems($items);
 		}
 
-		/** @var MultiSelectBox|CheckboxList $component */
-		if ($component instanceof MultiSelectBox || $component instanceof CheckboxList) {
+		/** @var MultiChoiceControl $component */
+		if ($component instanceof MultiChoiceControl) {
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
 				return FALSE;
 			}
@@ -180,14 +179,30 @@ class TextControl extends Nette\Object implements IComponentMapper
 			return FALSE;
 		}
 
-		if (!$identifier = $component->getValue()) {
-			return FALSE;
+		/** @var ChoiceControl|MultiChoiceControl $component */
+		if (($component instanceof ChoiceControl || $component instanceof MultiChoiceControl) && !count($component->getItems())) {
+			if (!$nameKey = $component->getOption(self::ITEMS_TITLE, FALSE)) {
+				$path = $component->lookupPath('Nette\Application\UI\Form');
+				throw new Kdyby\DoctrineForms\InvalidStateException(
+					'Either specify items for ' . $path . ' yourself, or set the option Kdyby\DoctrineForms\IComponentMapper::ITEMS_TITLE ' .
+					'to choose field that will be used as title'
+				);
+			}
+
+			$criteria = $component->getOption(self::ITEMS_FILTER, array());
+			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
+
+			$related = $this->relatedMetadata($entity, $name);
+			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);
+			$component->setItems($items);
 		}
+
+		$identifier = $component->getValue();
 
 		$repository = $this->em->getRepository($this->relatedMetadata($entity, $name)->getName());
 
-		/** @var MultiSelectBox|CheckboxList $component */
-		if ($component instanceof MultiSelectBox || $component instanceof CheckboxList) {
+		/** @var MultiChoiceControl $component */
+		if ($component instanceof MultiChoiceControl) {
 
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
 				return FALSE;
@@ -198,10 +213,12 @@ class TextControl extends Nette\Object implements IComponentMapper
 				$collectionByIds[] = $i->getId();
 			}
 
-			$identifiers = $identifier;
+			$identifiers = $identifier ? $identifier : [];
 			$received = [];
 
 			foreach ($identifiers as $identifier) {
+				if (empty($identifier)) continue;
+
 				if (!in_array($identifier, $collectionByIds)) { // entity was added from the client
 					$collection[] = $relation = $repository->find($identifier);
 				}
@@ -216,8 +233,10 @@ class TextControl extends Nette\Object implements IComponentMapper
 			}
 
 		} else {
-			if (($relation = $repository->find($identifier))) {
+			if ($identifier && ($relation = $repository->find($identifier))) {
 				$meta->setFieldValue($entity, $name, $relation);
+			} else {
+				$meta->setFieldValue($entity, $name, NULL);
 			}
 		}
 

@@ -62,7 +62,7 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		parent::__construct();
 
-		$this->containerFactory = callback($containerFactory);
+		$this->containerFactory = $containerFactory;
 		$this->collection = new ArrayCollection();
 	}
 
@@ -163,7 +163,7 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		$class = $this->containerClass;
 		$this[$name] = $container = new $class();
-		$this->containerFactory->invoke($container, $this->parent);
+		Nette\Utils\Callback::invoke($this->containerFactory, $container, $this->parent);
 
 		return $container;
 	}

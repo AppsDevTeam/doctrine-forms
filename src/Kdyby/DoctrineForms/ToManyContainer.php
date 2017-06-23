@@ -202,7 +202,7 @@ class ToManyContainer extends Nette\Forms\Container
 	 */
 	private function getHttpData()
 	{
-		$path = $this->lookupPath('Nette\Application\UI\Form');
+		$path = explode(self::NAME_SEPARATOR, $this->lookupPath('Nette\Application\UI\Form'));
 		$allData = $this->getForm()->getHttpData();
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
 	}

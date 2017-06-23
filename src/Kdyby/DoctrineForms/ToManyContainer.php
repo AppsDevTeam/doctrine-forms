@@ -62,7 +62,7 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		parent::__construct();
 
-		$this->containerFactory = callback($containerFactory);
+		$this->containerFactory = $containerFactory;
 		$this->collection = new ArrayCollection();
 	}
 
@@ -163,7 +163,7 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		$class = $this->containerClass;
 		$this[$name] = $container = new $class();
-		$this->containerFactory->invoke($container, $this->parent);
+		Nette\Utils\Callback::invoke($this->containerFactory, $container, $this->parent);
 
 		return $container;
 	}
@@ -188,8 +188,10 @@ class ToManyContainer extends Nette\Forms\Container
 			return;
 		}
 
-		foreach (array_keys($this->getHttpData()) as $id) {
-			$this->getComponent($id); // eager initialize
+		if ($this->getHttpData()) {
+			foreach (array_keys($this->getHttpData()) as $id) {
+				$this->getComponent($id); // eager initialize
+			}
 		}
 	}
 
@@ -200,7 +202,7 @@ class ToManyContainer extends Nette\Forms\Container
 	 */
 	private function getHttpData()
 	{
-		$path = $this->lookupPath('Nette\Application\UI\Form');
+		$path = explode(self::NAME_SEPARATOR, $this->lookupPath('Nette\Application\UI\Form'));
 		$allData = $this->getForm()->getHttpData();
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
 	}

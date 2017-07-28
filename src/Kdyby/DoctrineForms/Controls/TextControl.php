@@ -79,6 +79,8 @@ class TextControl extends Nette\Object implements IComponentMapper
 		if (
 			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
 			&&
+			!count($component->getItems())
+			&&
 			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
 		) {
 			$criteria = $component->getOption(self::ITEMS_FILTER, array());
@@ -178,6 +180,8 @@ class TextControl extends Nette\Object implements IComponentMapper
 		/** @var ChoiceControl|MultiChoiceControl $component */
 		if (
 			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
+			&&
+			!count($component->getItems())
 			&&
 			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
 		) {

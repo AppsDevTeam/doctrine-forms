@@ -156,6 +156,26 @@ class EntityFormMapperTest extends ORMTestCase
 
 
 
+	public function testRelation_toOne_emptyLoad()
+	{
+		$form = self::buildEntityForm()->injectEntityMapper($this->mapper);
+
+		$form->addText('topic');
+		$author = $form->addSelect('user')
+			->setItems([]);	// Situation when we specify items, but there are no items in the database.
+
+		$article = new CmsArticle('Nette');
+		$form->bindEntity($article);
+
+		Assert::same([], $author->items);
+
+		$this->attachToPresenter($form, array('topic' => 'Nette Framework'));
+		Assert::same('Nette Framework', $article->topic);
+		Assert::same(NULL, $article->user);
+	}
+
+
+
 	public function testRelation_toMany()
 	{
 		$form = self::buildEntityForm()->injectEntityMapper($this->mapper);

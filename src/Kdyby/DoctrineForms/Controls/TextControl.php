@@ -76,15 +76,11 @@ class TextControl extends Nette\Object implements IComponentMapper
 		}
 
 		/** @var ChoiceControl|MultiChoiceControl $component */
-		if (($component instanceof ChoiceControl || $component instanceof MultiChoiceControl) && !count($component->getItems())) {
-			if (!$nameKey = $component->getOption(self::ITEMS_TITLE, FALSE)) {
-				$path = $component->lookupPath('Nette\Application\UI\Form');
-				throw new Kdyby\DoctrineForms\InvalidStateException(
-					'Either specify items for ' . $path . ' yourself, or set the option Kdyby\DoctrineForms\IComponentMapper::ITEMS_TITLE ' .
-					'to choose field that will be used as title'
-				);
-			}
-
+		if (
+			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
+			&&
+			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
+		) {
 			$criteria = $component->getOption(self::ITEMS_FILTER, array());
 			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
 
@@ -180,15 +176,11 @@ class TextControl extends Nette\Object implements IComponentMapper
 		}
 
 		/** @var ChoiceControl|MultiChoiceControl $component */
-		if (($component instanceof ChoiceControl || $component instanceof MultiChoiceControl) && !count($component->getItems())) {
-			if (!$nameKey = $component->getOption(self::ITEMS_TITLE, FALSE)) {
-				$path = $component->lookupPath('Nette\Application\UI\Form');
-				throw new Kdyby\DoctrineForms\InvalidStateException(
-					'Either specify items for ' . $path . ' yourself, or set the option Kdyby\DoctrineForms\IComponentMapper::ITEMS_TITLE ' .
-					'to choose field that will be used as title'
-				);
-			}
-
+		if (
+			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
+			&&
+			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
+		) {
 			$criteria = $component->getOption(self::ITEMS_FILTER, array());
 			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
 

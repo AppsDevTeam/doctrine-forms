@@ -91,13 +91,13 @@ class EntityFormMapper extends Nette\Object
 	 * @param object $entity
 	 * @param BaseControl|Container $formElement
 	 */
-	public function load($entity, $formElement)
+	public function load($entity, $formElement, $forceValues = FALSE)
 	{
 		$meta = $this->getMetadata($entity);
 
 		foreach (self::iterate($formElement) as $component) {
 			foreach ($this->componentMappers as $mapper) {
-				if ($mapper->load($meta, $component, $entity)) {
+				if ($mapper->load($meta, $component, $entity, $forceValues)) {
 					break;
 				}
 			}

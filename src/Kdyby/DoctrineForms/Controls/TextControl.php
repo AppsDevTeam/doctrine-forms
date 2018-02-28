@@ -60,14 +60,16 @@ class TextControl extends Nette\Object implements IComponentMapper
 	/**
 	 * {@inheritdoc}
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity)
+	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE)
 	{
+		$valueSetter = $force ? 'setValue' : 'setDefaultValue';
+
 		if (!$component instanceof BaseControl) {
 			return FALSE;
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
-			$component->setDefaultValue($this->accessor->getValue($entity, $name));
+			$component->$valueSetter($this->accessor->getValue($entity, $name));
 			return TRUE;
 		}
 
@@ -103,12 +105,12 @@ class TextControl extends Nette\Object implements IComponentMapper
 			foreach ($collection as $key => $relation) {
 				$value[] = $UoW->getSingleIdentifierValue($relation);
 			}
-			$component->setDefaultValue($value);
+			$component->$valueSetter($value);
 
 		} else {
 			if ($relation = $this->accessor->getValue($entity, $name)) {
 				$UoW = $this->em->getUnitOfWork();
-				$component->setDefaultValue($UoW->getSingleIdentifierValue($relation));
+				$component->$valueSetter($UoW->getSingleIdentifierValue($relation));
 			}
 		}
 

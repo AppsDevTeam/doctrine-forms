@@ -75,6 +75,26 @@ class ToManyContainer extends Nette\Forms\Container
 	}
 
 
+	/**
+	 * Create new container
+	 *
+	 * @param string|int $name
+	 *
+	 * @throws \Nette\InvalidArgumentException
+	 * @return \Nette\Forms\Container
+	 */
+	public function createOne($name = NULL)
+	{
+		if ($name === NULL) {
+			$names = array_map(function($key) {
+				return substr($key, strlen(ToManyContainer::NEW_PREFIX)); // TODO statickou funkci
+				}, array_keys(iterator_to_array($this->getComponents())));
+			$name = $names ? max($names) + 1 : 0;
+		}
+
+		return $this[ToManyContainer::NEW_PREFIX . $name];
+	}
+
 
 	public function bindCollection($parent, Collection $collection)
 	{

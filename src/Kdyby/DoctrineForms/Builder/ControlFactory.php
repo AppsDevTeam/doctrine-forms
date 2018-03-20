@@ -22,8 +22,9 @@ use Nette\Forms\Controls;
 /**
  * @author Filip Procházka <filip@prochazka.su>
  */
-class ControlFactory extends Nette\Object
+class ControlFactory
 {
+	use \Nette\SmartObject;
 
 	public function create(ClassMetadata $class, array $mapping)
 	{

@@ -25,8 +25,9 @@ use Nette;
 /**
  * @author Filip Procházka <filip@prochazka.su>
  */
-class EntityBuilder extends Nette\Object
+class EntityBuilder
 {
+	use \Nette\SmartObject;
 
 	const MODE_WHITELIST = 'whitelist';
 	const MODE_BLACKLIST = 'blacklist';

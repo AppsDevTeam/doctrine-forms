@@ -23,8 +23,9 @@ use Nette\ComponentModel\Component;
 /**
  * @author Filip Procházka <filip@prochazka.su>
  */
-class ToOne extends Nette\Object implements IComponentMapper
+class ToOne implements IComponentMapper
 {
+	use \Nette\SmartObject;
 
 	/**
 	 * @var EntityFormMapper

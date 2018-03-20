@@ -25,9 +25,10 @@ use Nette\ComponentModel\Component;
 /**
  * @author Filip Procházka <filip@prochazka.su>
  */
-class ToMany extends Nette\Object implements IComponentMapper
+class ToMany implements IComponentMapper
 {
-
+	use \Nette\SmartObject;
+	
 	/**
 	 * @var EntityFormMapper
 	 */

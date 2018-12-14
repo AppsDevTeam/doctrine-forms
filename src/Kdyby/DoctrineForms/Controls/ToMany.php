@@ -61,14 +61,14 @@ class ToMany implements IComponentMapper
 
 		$component->bindCollection($entity, $collection);
 		foreach ($collection as $key => $relation) {
-			if ($id = $UoW->getSingleIdentifierValue($relation)) {
-				if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
+			if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
+				if ($UoW->getSingleIdentifierValue($relation)) {
 					$this->mapper->load($relation, $component[$key]);
+					continue;
 				}
-				continue;
-			}
 
-			$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
+				$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
+			}
 		}
 
 		return TRUE;

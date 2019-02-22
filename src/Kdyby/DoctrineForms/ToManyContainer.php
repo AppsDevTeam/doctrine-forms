@@ -42,6 +42,11 @@ class ToManyContainer extends Nette\Forms\Container
 	private $containerFactory;
 
 	/**
+	 * @var Nette\Utils\Callback
+	 */
+	private $entityFactory;
+
+	/**
 	 * @var string
 	 */
 	private $containerClass = 'Nette\Forms\Container';
@@ -58,11 +63,12 @@ class ToManyContainer extends Nette\Forms\Container
 
 
 
-	public function __construct($containerFactory)
+	public function __construct($containerFactory, $entityFactory)
 	{
 		parent::__construct();
 
 		$this->containerFactory = $containerFactory;
+		$this->entityFactory = $entityFactory;
 		$this->collection = new ArrayCollection();
 	}
 
@@ -93,6 +99,15 @@ class ToManyContainer extends Nette\Forms\Container
 		}
 
 		return $this[ToManyContainer::NEW_PREFIX . $name];
+	}
+
+	public function createEntity(\Doctrine\ORM\Mapping\ClassMetadata $relationMeta)
+	{
+		if (! $this->entityFactory) {
+			return $relationMeta->newInstance();
+		}
+
+		return Nette\Utils\Callback::invoke($this->entityFactory, $relationMeta);
 	}
 
 
@@ -231,8 +246,8 @@ class ToManyContainer extends Nette\Forms\Container
 
 	public static function register($name = 'toMany')
 	{
-		Nette\Forms\Container::extensionMethod($name, function (Nette\Forms\Container $_this, $name, $containerFactory = NULL) {
-			$container = new ToManyContainer($containerFactory);
+		Nette\Forms\Container::extensionMethod($name, function (Nette\Forms\Container $_this, $name, $containerFactory = NULL, $entityFactory = NULL) {
+			$container = new ToManyContainer($containerFactory, $entityFactory);
 
 			return $_this[$name] = $container;
 		});

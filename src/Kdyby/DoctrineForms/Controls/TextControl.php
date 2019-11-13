@@ -153,7 +153,7 @@ class TextControl implements IComponentMapper
 		$idKey = $meta->getSingleIdentifierFieldName();
 		foreach ($repository->findBy($criteria, $orderBy) as $entity) {
 			$items[$this->accessor->getValue($entity, $idKey)] = is_callable($nameKey)
-				? Nette\Utils\Callback::invoke($nameKey, $entity)
+				? $nameKey($entity)
 				: $this->accessor->getValue($entity, $nameKey);
 		}
 

@@ -65,8 +65,6 @@ class ToManyContainer extends Nette\Forms\Container
 
 	public function __construct($containerFactory, $entityFactory)
 	{
-		parent::__construct();
-
 		$this->containerFactory = $containerFactory;
 		$this->entityFactory = $entityFactory;
 		$this->collection = new ArrayCollection();
@@ -74,7 +72,7 @@ class ToManyContainer extends Nette\Forms\Container
 
 
 
-	protected function validateParent(Nette\ComponentModel\IContainer $parent)
+	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
 	{
 		parent::validateParent($parent);
 		$this->monitor('Nette\Application\UI\Presenter');
@@ -94,7 +92,7 @@ class ToManyContainer extends Nette\Forms\Container
 		if ($name === NULL) {
 			$names = array_map(function($key) {
 				return substr($key, strlen(ToManyContainer::NEW_PREFIX)); // TODO statickou funkci
-				}, array_keys(iterator_to_array($this->getComponents())));
+			}, array_keys(iterator_to_array($this->getComponents())));
 			$name = $names ? max($names) + 1 : 0;
 		}
 
@@ -107,7 +105,7 @@ class ToManyContainer extends Nette\Forms\Container
 			return $relationMeta->newInstance();
 		}
 
-		return Nette\Utils\Callback::invoke($this->entityFactory, $relationMeta);
+		return $this->entityFactory($relationMeta);
 	}
 
 
@@ -194,11 +192,11 @@ class ToManyContainer extends Nette\Forms\Container
 
 
 
-	protected function createComponent($name)
+	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
 		$class = $this->containerClass;
 		$this[$name] = $container = new $class();
-		Nette\Utils\Callback::invoke($this->containerFactory, $container, $this->parent);
+		$this->containerFactory->call($this->parent, $container);
 
 		return $container;
 	}
@@ -208,7 +206,7 @@ class ToManyContainer extends Nette\Forms\Container
 	/**
 	 * @param \Nette\ComponentModel\Container $obj
 	 */
-	protected function attached($obj)
+	protected function attached($obj): void
 	{
 		parent::attached($obj);
 

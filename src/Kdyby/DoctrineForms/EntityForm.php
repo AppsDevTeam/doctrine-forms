@@ -102,7 +102,7 @@ trait EntityForm
 		$this->validate();
 
 		if ($this->isValid()) {
-			$this->getEntityMapper()->save($this->entity, $this);
+			$this->mapToEntity();
 		}
 
 		if ($submittedBy instanceof Nette\Forms\ISubmitterControl) {
@@ -141,6 +141,13 @@ trait EntityForm
 		$presenter = $this->lookup('Nette\Application\UI\Presenter');
 
 		return $presenter->getContext();
+	}
+	
+	
+
+	protected function mapToEntity()
+	{
+		$this->getEntityMapper()->save($this->entity, $this);
 	}
 
 }

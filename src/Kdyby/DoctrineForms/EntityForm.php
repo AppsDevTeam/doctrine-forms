@@ -101,7 +101,7 @@ trait EntityForm
 
 		$this->validate();
 
-		if ($this->isValid()) {
+		if ($this->isValid() && $this->entity) {
 			$this->mapToEntity();
 		}
 

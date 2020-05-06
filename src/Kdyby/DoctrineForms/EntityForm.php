@@ -91,7 +91,7 @@ trait EntityForm
 
 
 
-	public function fireEvents()
+	public function fireEvents(): void
 	{
 		/** @var EntityForm|UI\Form $this */
 
@@ -121,7 +121,7 @@ trait EntityForm
 				}
 				$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
 				$values = isset($params[1]) ? $this->getValues($params[1]->isArray()) : NULL;
-				Nette\Utils\Callback::invoke($handler, $this, $values);
+				$handler($this, $values);
 			}
 		} elseif (!$this->isValid()) {
 			$this->onError($this);

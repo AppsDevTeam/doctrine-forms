@@ -153,7 +153,7 @@ class TextControl implements IComponentMapper
 		$idKey = $meta->getSingleIdentifierFieldName();
 		foreach ($repository->findBy($criteria, $orderBy) as $entity) {
 			$items[$this->accessor->getValue($entity, $idKey)] = is_callable($nameKey)
-				? Nette\Utils\Callback::invoke($nameKey, $entity)
+				? $nameKey($entity)
 				: $this->accessor->getValue($entity, $nameKey);
 		}
 
@@ -172,7 +172,11 @@ class TextControl implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
-			$this->accessor->setValue($entity, $name, $component->getValue());
+			$value = $component->getValue();
+			if (is_object($value) && $value instanceof \DateTimeImmutable) {
+				$value = new \DateTime($value->format('Y-m-d H:i:s'));
+			}
+			$this->accessor->setValue($entity, $name, $value);
 			return TRUE;
 		}
 

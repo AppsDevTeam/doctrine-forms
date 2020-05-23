@@ -176,6 +176,9 @@ class TextControl implements IComponentMapper
 			if (is_object($value) && $value instanceof \DateTimeImmutable) {
 				$value = new \DateTime($value->format('Y-m-d H:i:s'));
 			}
+			elseif ($meta->isNullable($component->getName()) && $value === '') {
+				$value = NULL;
+			}
 			$this->accessor->setValue($entity, $name, $value);
 			return TRUE;
 		}

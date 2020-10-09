@@ -20,6 +20,7 @@ use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\ChoiceControl;
 use Nette\Forms\Controls\MultiChoiceControl;
+use Symfony\Component\PropertyAccess\Exception\UninitializedPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -70,7 +71,13 @@ class TextControl implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
-			$component->$valueSetter($this->accessor->getValue($entity, $name));
+			try {
+				$gettedValue = $this->accessor->getValue($entity, $name);
+			} catch (UninitializedPropertyException $e) {
+				$gettedValue = NULL;
+			}
+
+			$component->$valueSetter($gettedValue);
 			return TRUE;
 		}
 
@@ -109,7 +116,13 @@ class TextControl implements IComponentMapper
 			$component->$valueSetter($value);
 
 		} else {
-			if ($relation = $this->accessor->getValue($entity, $name)) {
+			try {
+				$relation = $this->accessor->getValue($entity, $name);
+			} catch (UninitializedPropertyException $e) {
+				$relation = NULL;
+			}
+
+			if ($relation) {
 				$UoW = $this->em->getUnitOfWork();
 				$component->$valueSetter($UoW->getSingleIdentifierValue($relation));
 			}

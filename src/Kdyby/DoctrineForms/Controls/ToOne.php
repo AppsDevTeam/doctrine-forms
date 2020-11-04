@@ -74,6 +74,17 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
+		if (
+			$component instanceof Kdyby\DoctrineForms\ToOneContainer 
+			&& 
+			$component->isAllowedRemove()
+			&& 
+			!array_filter($component->getValues('array'))
+		) {
+			$meta->setFieldValue($entity, $component->getName(), null);
+			return true;
+		}
+
 		$this->mapper->save($relation, $component);
 
 		return TRUE;

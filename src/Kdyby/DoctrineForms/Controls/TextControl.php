@@ -196,6 +196,15 @@ class TextControl implements IComponentMapper
 			return TRUE;
 		}
 
+		if (
+			!$meta->hasAssociation($name)
+			&&
+			property_exists($entity, $component->getName())
+		) {
+			$this->accessor->setValue($entity, $name, $component->getValue());
+			return TRUE;
+		}
+
 		if (!$meta->hasAssociation($name)) {
 			return FALSE;
 		}

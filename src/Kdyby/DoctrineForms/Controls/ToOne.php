@@ -32,11 +32,15 @@ class ToOne implements IComponentMapper
 	 */
 	private $mapper;
 
-
+	/**
+	 * @var Kdyby\Doctrine\EntityManager
+	 */
+	private $em;
 
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
+		$this->em = $this->mapper->getEntityManager();
 	}
 
 
@@ -74,18 +78,30 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
-		if (
-			$component instanceof Kdyby\DoctrineForms\ToOneContainer 
-			&& 
-			$component->isAllowedRemove()
-			&& 
-			!array_filter($component->getValues('array'))
-		) {
-			$meta->setFieldValue($entity, $component->getName(), null);
-			return true;
+		if (! $relation->getId()) {
+			// doctrine never calls constructor,
+			// we have to create the instance on ourself
+			$relation = new $relation;
+		}
+		else {
+			if (
+				$component instanceof Kdyby\DoctrineForms\ToOneContainer
+				&&
+				$component->isAllowedRemove()
+				&&
+				!array_filter($component->getValues('array'))
+			) {
+				$meta->setFieldValue($entity, $component->getName(), null);
+				return true;
+			}
 		}
 
 		$this->mapper->save($relation, $component);
+
+		if (! $relation->getId()) {
+			$this->em->persist($relation);
+			$meta->setFieldValue($entity, $component->getName(), $relation);
+		}
 
 		return TRUE;
 	}

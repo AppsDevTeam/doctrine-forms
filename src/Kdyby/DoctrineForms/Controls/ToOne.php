@@ -32,6 +32,8 @@ class ToOne implements IComponentMapper
 	 */
 	private $mapper;
 
+
+
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
@@ -52,8 +54,8 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
-		// we have to fill generated isFilled component value
-		// if the field is not empty
+		// we have to fill isFilled component value
+		// if the field is not empty and isFilled component was generated
 		if (
 			$component instanceof Kdyby\DoctrineForms\ToOneContainer
 			&&
@@ -84,6 +86,8 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
+		// we want to delete the entity
+		// if the field is not empty and isFilled component value is empty
 		if (
 			$component instanceof Kdyby\DoctrineForms\ToOneContainer
 			&&
@@ -96,15 +100,14 @@ class ToOne implements IComponentMapper
 			$relation = $this->getRelation($meta, $entity, $component->getName());
 		}
 
-		// we don't want to create an empty entity if the isFilled component value is false
+		// we don't want to create an empty entity
+		// if the field and isFilled component are both empty
 		if (
 			$component instanceof Kdyby\DoctrineForms\ToOneContainer
 			&&
 			!$relation->getId()
 			&&
 			!$component->getIsFilledComponent()->getValue()
-			&&
-			!array_filter($component->getValues('array'))
 		) {
 			$meta->setFieldValue($entity, $component->getName(), null);
 			return true;

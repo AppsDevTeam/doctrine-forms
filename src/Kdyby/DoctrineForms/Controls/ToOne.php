@@ -58,6 +58,18 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
+		// we have to fill generated isFilled component value
+		// if the field is not empty
+		if (
+			$component instanceof Kdyby\DoctrineForms\ToOneContainer
+			&&
+			$relation->getId()
+			&&
+			$component->hasGeneratedIsFilledComponent()
+		) {
+			$component->getIsFilledComponent()->setDefaultValue(true);
+		}
+
 		$this->mapper->load($relation, $component);
 
 		return TRUE;
@@ -78,30 +90,33 @@ class ToOne implements IComponentMapper
 			return FALSE;
 		}
 
-		if (! $relation->getId()) {
-			// doctrine never calls constructor,
-			// we have to create the instance on ourself
-			$relation = new $relation;
+		if (
+			$component instanceof Kdyby\DoctrineForms\ToOneContainer
+			&&
+			$relation->getId()
+			&&
+			!$component->getIsFilledComponent()->getValue()
+		) {
+			$meta->setFieldValue($entity, $component->getName(), null);
+
+			$relation = $this->getRelation($meta, $entity, $component->getName());
 		}
-		else {
-			if (
-				$component instanceof Kdyby\DoctrineForms\ToOneContainer
-				&&
-				$component->isAllowedRemove()
-				&&
-				!array_filter($component->getValues('array'))
-			) {
-				$meta->setFieldValue($entity, $component->getName(), null);
-				return true;
-			}
+
+		// we don't want to create an empty entity if the isFilled component value is false
+		if (
+			$component instanceof Kdyby\DoctrineForms\ToOneContainer
+			&&
+			!$relation->getId()
+			&&
+			!$component->getIsFilledComponent()->getValue()
+			&&
+			!array_filter($component->getValues('array'))
+		) {
+			$meta->setFieldValue($entity, $component->getName(), null);
+			return true;
 		}
 
 		$this->mapper->save($relation, $component);
-
-		if (! $relation->getId()) {
-			$this->em->persist($relation);
-			$meta->setFieldValue($entity, $component->getName(), $relation);
-		}
 
 		return TRUE;
 	}

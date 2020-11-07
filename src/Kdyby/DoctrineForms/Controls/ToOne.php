@@ -32,15 +32,9 @@ class ToOne implements IComponentMapper
 	 */
 	private $mapper;
 
-	/**
-	 * @var Kdyby\Doctrine\EntityManager
-	 */
-	private $em;
-
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
-		$this->em = $this->mapper->getEntityManager();
 	}
 
 

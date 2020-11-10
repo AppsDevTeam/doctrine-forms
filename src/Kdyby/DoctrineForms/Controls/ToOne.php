@@ -46,22 +46,20 @@ class ToOne implements IComponentMapper
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity)
 	{
-		if (!$component instanceof Nette\Forms\Container) {
+		if (!$component instanceof Kdyby\DoctrineForms\ToOneContainer) {
 			return FALSE;
 		}
 
-		if (!$relation = $this->getRelation($meta, $entity, $component->getName())) {
+		if (!$relation = $this->getRelation($meta, $component, $entity)) {
 			return FALSE;
 		}
 
 		// we have to fill isFilled component value
-		// if the field is not empty and isFilled component was generated
+		// if the field is not empty and isFilled component is set
 		if (
-			$component instanceof Kdyby\DoctrineForms\ToOneContainer
-			&&
 			$relation->getId()
 			&&
-			$component->hasGeneratedIsFilledComponent()
+			$component->getIsFilledComponent()
 		) {
 			$component->getIsFilledComponent()->setDefaultValue(true);
 		}
@@ -78,36 +76,36 @@ class ToOne implements IComponentMapper
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity)
 	{
-		if (!$component instanceof Nette\Forms\Container) {
+		if (!$component instanceof Kdyby\DoctrineForms\ToOneContainer) {
 			return FALSE;
 		}
 
-		if (!$relation = $this->getRelation($meta, $entity, $component->getName())) {
+		if (!$relation = $this->getRelation($meta, $component, $entity)) {
 			return FALSE;
 		}
 
 		// we want to delete the entity
-		// if the field is not empty and isFilled component value is empty
+		// if the field is not empty and isFilled component value is empty or the entire container is empty
 		if (
-			$component instanceof Kdyby\DoctrineForms\ToOneContainer
-			&&
 			$relation->getId()
 			&&
-			!$component->getIsFilledComponent()->getValue()
+			(
+				$component->getIsFilledComponent() && !$component->getIsFilledComponent()->getValue()
+				||
+				$component->isEmpty()
+			)
 		) {
 			$meta->setFieldValue($entity, $component->getName(), null);
 
-			$relation = $this->getRelation($meta, $entity, $component->getName());
+			// we don't want to rely on orphanRemoval
+			$this->mapper->getEntityManager()->remove($relation);
 		}
-
-		// we don't want to create an empty entity
-		// if the field and isFilled component are both empty
-		if (
-			$component instanceof Kdyby\DoctrineForms\ToOneContainer
-			&&
+		// we don't want to create an entity
+		// if the whole container is empty
+		elseif (
 			!$relation->getId()
 			&&
-			!$component->getIsFilledComponent()->getValue()
+			$component->isEmpty()
 		) {
 			$meta->setFieldValue($entity, $component->getName(), null);
 			return true;
@@ -126,8 +124,10 @@ class ToOne implements IComponentMapper
 	 * @param string $field
 	 * @return bool|object
 	 */
-	private function getRelation(ClassMetadata $meta, $entity, $field)
+	private function getRelation(ClassMetadata $meta, Kdyby\DoctrineForms\ToOneContainer $component, $entity)
 	{
+		$field = $component->getName();
+
 		if (!$meta->hasAssociation($field) || !$meta->isSingleValuedAssociation($field)) {
 			return FALSE;
 		}
@@ -142,8 +142,11 @@ class ToOne implements IComponentMapper
 			$class = $meta->getAssociationTargetClass($field);
 			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
 
-			$relation = $relationMeta->newInstance();
+			$relation = $component->createEntity($relationMeta);
 			$meta->setFieldValue($entity, $field, $relation);
+		}
+		else {
+			$component->getEntityFactory()->call($component, $relation);
 		}
 
 		return $relation;

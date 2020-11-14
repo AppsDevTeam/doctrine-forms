@@ -95,13 +95,23 @@ class ToOne implements IComponentMapper
 				$component->isEmpty()
 			)
 		) {
-			$meta->setFieldValue($entity, $component->getName(), null);
-
-			// we don't want to rely on orphanRemoval
-			$this->mapper->getEntityManager()->remove($relation);
+			$this->removeComponent($meta, $component, $entity);
+			return true;
+		}
+		// we want to delete the entity
+		// if isFilled component is set and any other container control is filled
+		elseif (
+			$relation->getId()
+			&&
+			$component->getIsFilledComponent()
+			&&
+			!$component->isEmpty($excludeIsFilledComponent = true)
+		) {
+			$this->removeComponent($meta, $component, $entity);
+			$relation = $this->getRelation($meta, $component, $entity);
 		}
 		// we don't want to create an entity
-		// if the whole container is empty
+		// if the entire container is empty
 		elseif (
 			!$relation->getId()
 			&&
@@ -114,6 +124,20 @@ class ToOne implements IComponentMapper
 		$this->mapper->save($relation, $component);
 
 		return TRUE;
+	}
+
+
+
+	private function removeComponent(ClassMetadata $meta, $component, $entity)
+	{
+		$relation = $this->getRelation($meta, $component, $entity);
+
+		// we don't want to rely on orphanRemoval
+		$this->mapper->getEntityManager()->remove($relation);
+
+		// this must not be before entity removal
+		// otherwise the relation is refreshed
+		$meta->setFieldValue($entity, $component->getName(), null);
 	}
 
 
@@ -144,9 +168,6 @@ class ToOne implements IComponentMapper
 
 			$relation = $component->createEntity($relationMeta);
 			$meta->setFieldValue($entity, $field, $relation);
-		}
-		else {
-			$component->getEntityFactory()->call($component, $relation);
 		}
 
 		return $relation;

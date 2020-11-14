@@ -66,6 +66,7 @@ trait EntityForm
 
 
 	/**
+	 * @deprecated
 	 * @param object $entity
 	 * @return EntityForm|UI\Form
 	 */
@@ -73,9 +74,23 @@ trait EntityForm
 	{
 		$this->entity = $entity;
 
-		/** @var EntityForm|UI\Form $this */
-		$this->getEntityMapper()->load($entity, $this);
+		$this->mapToForm();
 
+		return $this;
+	}
+
+
+
+	/**
+	 * @return object
+	 */
+	public function setEntity($entity)
+	{
+		if (!is_object($entity)) {
+			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
+		}
+		
+		$this->entity = $entity;
 		return $this;
 	}
 
@@ -142,12 +157,22 @@ trait EntityForm
 
 		return $presenter->getContext();
 	}
-	
-	
+
+
+
+	public function mapToForm()
+	{
+		if (!$this->entity) {
+			throw new \Exception('An entity is not set.');
+		}
+
+		$this->getEntityMapper()->load($this->entity, $this);
+	}
+
+
 
 	protected function mapToEntity()
 	{
 		$this->getEntityMapper()->save($this->entity, $this);
 	}
-
 }

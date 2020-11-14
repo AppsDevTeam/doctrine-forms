@@ -8,7 +8,7 @@ use Nette;
 class ToOneContainer extends Nette\Forms\Container
 {
 	protected $entityFactory;
-	protected $isFilledComponent;
+	protected Nette\Forms\Controls\BaseControl $isFilledComponent;
 
 	public function __construct($entityFactory)
 	{
@@ -31,9 +31,14 @@ class ToOneContainer extends Nette\Forms\Container
 		return $this->isFilledComponent;
 	}
 
-	public function isEmpty()
+	public function isEmpty($excludeIsFilledComponent = false)
 	{
-		return !array_filter($this->getValues('array'));
+		$values = $this->getValues('array');
+		if ($excludeIsFilledComponent) {
+			unset($values[$this->getIsFilledComponent()->getName()]);
+		}
+
+		return !array_filter($values);
 	}
 
 	public function createEntity(\Doctrine\ORM\Mapping\ClassMetadata $relationMeta)
@@ -42,8 +47,7 @@ class ToOneContainer extends Nette\Forms\Container
 			return $relationMeta->newInstance();
 		}
 
-		$entityClass = $relationMeta->getName();
-		return $this->entityFactory->call($this, new $entityClass);
+		return $this->entityFactory->call($relationMeta);
 	}
 
 	public static function register($name = 'toOne')
@@ -53,7 +57,35 @@ class ToOneContainer extends Nette\Forms\Container
 
 			$containerFactory->call($_this, $container);
 
+			/** @var EntityForm $form */
+			$form = $_this->getForm();
+
+			if (!$form->getEntity()) {
+				throw new \Exception('Set the entity via "EntityForm::setEntity" method before using toOne method.');
+			}
+
+			/** @var EntityManager $em */
+			$em = $form->getEntityMapper()->getEntityManager();
+
+			$targetEntity = $em->getMetadataFactory()
+				->getMetadataFor(get_class($form->getEntity()))
+				->getAssociationMapping($name)['targetEntity'];
+
+			$mapping = $em->getMetadataFactory()
+				->getMetadataFor($targetEntity);
+
+			$hasFieldControls = false;
+			foreach ($container->getControls() as $control) {
+				if ($mapping->hasField($control->getName())) {
+					$hasFieldControls = true;
+				}
+			}
+
 			if ($isFilledComponentName) {
+				if ($hasFieldControls) {
+					throw new \Exception('Do not specify an "isFilled" component if any container control is an entity field.');
+				}
+
 				if (isset($container[$isFilledComponentName])) {
 					throw new \Exception('Component ' . $isFilledComponentName . ' already exists.');
 				}
@@ -65,11 +97,8 @@ class ToOneContainer extends Nette\Forms\Container
 					$isFilledComponent->setRequired($errorMessage);
 				}
 				else {
-					/** @var EntityManager $em */
-					$em = $_this->getForm()->getEntityMapper()->getEntityManager();
-
 					$mapping = $em->getMetadataFactory()
-						->getMetadataFor(get_class($_this->getParent()->getRow()))
+						->getMetadataFor(get_class($form->getEntity()))
 						->getAssociationMapping($name)['joinColumns'][0];
 
 					// the field is not nullable
@@ -81,6 +110,15 @@ class ToOneContainer extends Nette\Forms\Container
 				}
 
 				$container->setIsFilledComponent($isFilledComponent);
+			}
+			else {
+				if (!$hasFieldControls) {
+					throw new \Exception('You have to specify an "isFilled" component if none of the containr controls is an entity field.');
+				}
+
+				if ($errorMessage) {
+					throw new \Exception('The error message must not be set unless the "isFilled" component is set.');
+				}
 			}
 
 			return $_this[$name] = $container;

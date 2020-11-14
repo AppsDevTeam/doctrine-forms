@@ -196,6 +196,17 @@ class TextControl implements IComponentMapper
 			return TRUE;
 		}
 
+		// sometimes we want to save some metadata to an entity
+		// for example base64 of an image cropped in a browser
+		if (
+			!$meta->hasAssociation($name)
+			&&
+			property_exists($entity, $component->getName())
+		) {
+			$this->accessor->setValue($entity, $name, $component->getValue());
+			return TRUE;
+		}
+
 		if (!$meta->hasAssociation($name)) {
 			return FALSE;
 		}

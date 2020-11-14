@@ -95,7 +95,8 @@ class ToOne implements IComponentMapper
 				$component->isEmpty()
 			)
 		) {
-			$relation = $this->removeComponent($meta, $component, $entity);
+			$this->removeComponent($meta, $component, $entity);
+			return true;
 		}
 		// we want to delete the entity
 		// if isFilled component is set and any other container control is filled
@@ -106,7 +107,8 @@ class ToOne implements IComponentMapper
 			&&
 			!$component->isEmpty($excludeIsFilledComponent = true)
 		) {
-			$relation = $this->removeComponent($meta, $component, $entity);
+			$this->removeComponent($meta, $component, $entity);
+			$relation = $this->getRelation($meta, $component, $entity);
 		}
 		// we don't want to create an entity
 		// if the entire container is empty
@@ -136,8 +138,6 @@ class ToOne implements IComponentMapper
 		// this must not be before entity removal
 		// otherwise the relation is refreshed
 		$meta->setFieldValue($entity, $component->getName(), null);
-
-		return $this->getRelation($meta, $component, $entity);
 	}
 
 
@@ -161,16 +161,13 @@ class ToOne implements IComponentMapper
 		if ($relation instanceof Collection) {
 			return FALSE;
 		}
-		
+
 		if ($relation === NULL) {
 			$class = $meta->getAssociationTargetClass($field);
 			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
 
 			$relation = $component->createEntity($relationMeta);
 			$meta->setFieldValue($entity, $field, $relation);
-		}
-		else {
-			$component->getEntityFactory()->call($component, $relation);
 		}
 
 		return $relation;

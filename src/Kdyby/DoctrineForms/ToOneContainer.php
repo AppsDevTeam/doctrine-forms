@@ -57,11 +57,18 @@ class ToOneContainer extends Nette\Forms\Container
 
 			$containerFactory->call($_this, $container);
 
+			/** @var EntityForm $form */
+			$form = $_this->getForm();
+
+			if (!$form->getEntity()) {
+				throw new \Exception('Set the entity via "EntityForm::setEntity" method before using toOne method.');
+			}
+
 			/** @var EntityManager $em */
-			$em = $_this->getForm()->getEntityMapper()->getEntityManager();
+			$em = $form->getEntityMapper()->getEntityManager();
 
 			$targetEntity = $em->getMetadataFactory()
-				->getMetadataFor(get_class($_this->getParent()->getRow()))
+				->getMetadataFor(get_class($form->getEntity()))
 				->getAssociationMapping($name)['targetEntity'];
 
 			$mapping = $em->getMetadataFactory()
@@ -91,7 +98,7 @@ class ToOneContainer extends Nette\Forms\Container
 				}
 				else {
 					$mapping = $em->getMetadataFactory()
-						->getMetadataFor(get_class($_this->getParent()->getRow()))
+						->getMetadataFor(get_class($form->getEntity()))
 						->getAssociationMapping($name)['joinColumns'][0];
 
 					// the field is not nullable

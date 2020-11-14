@@ -1,5 +1,5 @@
 {
-	"name": "kdyby/doctrine-forms",
+	"name": "adt/doctrine-forms",
 	"type": "library",
 	"description": "Forms mapping and validation of Doctrine ORM entities for Nette Framework",
 	"keywords": ["nette", "kdyby", "doctrine", "forms", "validation", "mapping"],

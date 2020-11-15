@@ -17,13 +17,20 @@ class ToMany implements IComponentMapper
 	 */
 	private EntityFormMapper $mapper;
 
+	/**
+	 * ToMany constructor.
+	 * @param EntityFormMapper $mapper
+	 */
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @param ClassMetadata $meta
+	 * @param Component $component
+	 * @param $entity
+	 * @return bool
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
@@ -53,7 +60,10 @@ class ToMany implements IComponentMapper
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @param ClassMetadata $meta
+	 * @param Component $component
+	 * @param $entity
+	 * @return bool
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{

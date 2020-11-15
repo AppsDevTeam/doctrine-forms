@@ -2,13 +2,15 @@
 
 namespace ADT\DoctrineForms;
 
+use Closure;
+
 class ToOneContainerFactory
 {
-	protected $name;
-	protected $containerFactory;
-	protected $entityFactory;
-	protected $isFilledComponentName;
-	protected $errorMessage;
+	private string $name;
+	private ?Closure $containerFactory;
+	private ?Closure $entityFactory;
+	private ?string $isFilledComponentName;
+	private ?string $errorMessage;
 
 	/**
 	 * ToOneContainerFactory constructor.
@@ -29,8 +31,6 @@ class ToOneContainerFactory
 
 	/**
 	 * @return ToOneContainer
-	 * @throws \Doctrine\Persistence\Mapping\MappingException
-	 * @throws \ReflectionException
 	 */
 	public function create()
 	{

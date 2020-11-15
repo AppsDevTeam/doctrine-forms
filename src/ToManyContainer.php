@@ -2,11 +2,6 @@
 
 namespace ADT\DoctrineForms;
 
-use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
-use Closure;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 use Nette\Application\UI;
 use Nette\Application\UI\Presenter;
@@ -42,19 +37,19 @@ class ToManyContainer extends BaseContainer
 		});
 	}
 
+	/**
+	 * @param string $name
+	 * @return Nette\ComponentModel\IComponent|null
+	 */
+	protected function createComponent($name): ?Nette\ComponentModel\IComponent
+	{
+		return $this[$name] = $container = $this->toOneContainerFactory->create();
+	}
+
 	public function setToOneContainerFactory($toOneContainerFactory)
 	{
 		$this->toOneContainerFactory = $toOneContainerFactory;
 		return $this;
-	}
-
-	/**
-	 * @param Nette\ComponentModel\IContainer $parent
-	 */
-	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
-	{
-		parent::validateParent($parent);
-		$this->monitor('Nette\Application\UI\Presenter');
 	}
 
 	/**
@@ -71,17 +66,6 @@ class ToManyContainer extends BaseContainer
 		}
 
 		return $this[ToManyContainer::NEW_PREFIX . $name];
-	}
-
-	/**
-	 * @param $parent
-	 * @param Collection $collection
-	 */
-	public function bindCollection($parent, Collection $collection)
-	{
-		if (!is_object($parent)) {
-			throw new InvalidArgumentException('Expected entity, but ' . gettype($parent) . ' given.');
-		}
 	}
 
 	/**
@@ -118,27 +102,6 @@ class ToManyContainer extends BaseContainer
 	public function isDisabledAdding()
 	{
 		return $this->disableAdding;
-	}
-
-	/**
-	 * @return Collection
-	 */
-	public function getCollection()
-	{
-		return $this->collection;
-	}
-
-	/**
-	 * @param string $name
-	 * @return Nette\ComponentModel\IComponent|null
-	 */
-	protected function createComponent($name): ?Nette\ComponentModel\IComponent
-	{
-		$this[$name] = $container = $this->toOneContainerFactory->create();
-
-		$this->containerFactory->call($this->getForm(), $container);
-
-		return $container;
 	}
 
 	protected function onAttach(): void

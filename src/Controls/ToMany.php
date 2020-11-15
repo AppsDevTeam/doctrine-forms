@@ -2,12 +2,12 @@
 
 namespace ADT\DoctrineForms\Controls;
 
+use ADT\DoctrineForms\ToOneContainer;
 use Doctrine\Common\Collections\ArrayCollection;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use ADT\DoctrineForms\ToManyContainer;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Nette;
 use Nette\ComponentModel\Component;
 
 class ToMany implements IComponentMapper
@@ -38,7 +38,6 @@ class ToMany implements IComponentMapper
 		$em = $this->mapper->getEntityManager();
 		$UoW = $em->getUnitOfWork();
 
-		$component->bindCollection($entity, $collection);
 		foreach ($collection as $key => $relation) {
 			if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
 				if ($UoW->getSingleIdentifierValue($relation)) {
@@ -72,13 +71,13 @@ class ToMany implements IComponentMapper
 
 		$received = [];
 
-		/** @var Nette\Forms\Container $container */
-		foreach ($component->getComponents(FALSE, 'Nette\Forms\Container') as $container) {
+		/** @var ToOneContainer $container */
+		foreach ($component->getComponents(false) as $container) {
 			$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
 			$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
 
 			if ((!$relation = $collection->get($name))) { // entity was added from the client
-				$collection[$name] = $relation = $component->createEntity($relationMeta);
+				$collection[$name] = $relation = $container->createEntity($relationMeta);
 			}
 
 			$received[] = $name;

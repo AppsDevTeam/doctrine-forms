@@ -10,23 +10,29 @@ use Nette\Application\UI\Presenter;
 
 class ToOneContainer extends BaseContainer
 {
+	/**
+	 * @var Closure|null
+	 */
 	protected ?Closure $entityFactory;
+
+	/**
+	 * @var Nette\Forms\Controls\BaseControl
+	 */
 	protected Nette\Forms\Controls\BaseControl $isFilledComponent;
 
 	/**
 	 * ToOneContainer constructor.
-	 * @param $containerFactory
-	 * @param null $entityFactory
-	 * @param null $isFilledComponentName
-	 * @param null $errorMessage
-	 * @throws \Doctrine\Persistence\Mapping\MappingException
-	 * @throws \ReflectionException
+	 * @param string $entityFieldName
+	 * @param Closure $containerFactory
+	 * @param Closure|null $entityFactory
+	 * @param string|null $isFilledComponentName
+	 * @param string|null $errorMessage
 	 */
-	public function __construct($entityFieldName, $containerFactory, $entityFactory = null, $isFilledComponentName = null, $errorMessage = null)
+	public function __construct(string $entityFieldName, Closure $containerFactory, ?Closure $entityFactory, ?string $isFilledComponentName, ?string $errorMessage)
 	{
 		$this->entityFactory = $entityFactory;
 
-		$this->monitor(Presenter::class, function() {
+		$this->monitor(Presenter::class, function() use ($entityFieldName, $containerFactory, $isFilledComponentName, $errorMessage) {
 			$containerFactory->call($this->getForm(), $this);
 
 			/** @var EntityForm $form */
@@ -38,16 +44,16 @@ class ToOneContainer extends BaseContainer
 
 			$em = $form->getEntityMapper()->getEntityManager();
 
-			$targetEntity = $em->getMetadataFactory()
+			$associationMapping = $em->getMetadataFactory()
 				->getMetadataFor(get_class($form->getEntity()))
-				->getAssociationMapping($entityFieldName)['targetEntity'];
+				->getAssociationMapping($entityFieldName);
 
-			$mapping = $em->getMetadataFactory()
-				->getMetadataFor($targetEntity);
+			$classMetadata = $em->getMetadataFactory()
+				->getMetadataFor($associationMapping['targetEntity']);
 
 			$hasFieldControls = false;
 			foreach ($this->getControls() as $control) {
-				if ($mapping->hasField($control->getName())) {
+				if ($classMetadata->hasField($control->getName())) {
 					$hasFieldControls = true;
 				}
 			}
@@ -67,15 +73,13 @@ class ToOneContainer extends BaseContainer
 				if ($errorMessage) {
 					$isFilledComponent->setRequired($errorMessage);
 				}
-				else {
-					$mapping = $em->getMetadataFactory()
-						->getMetadataFor(get_class($form->getEntity()))
-						->getAssociationMapping($entityFieldName)['joinColumns'][0];
+				elseif (!in_array($associationMapping['type'], [ClassMetadata::ONE_TO_MANY, ClassMetadata::MANY_TO_MANY])) {
+					$mapping = $associationMapping['joinColumns'][0];
 
 					// the field is not nullable
 					if (isset($mapping['nullable']) && $mapping['nullable'] === false) {
 						if (empty($errorMessage)) {
-							throw new Exception('The error message must be set if isFilled component is set and the field is not nullable.');
+							throw new Exception('Error message must be set if isFilled component is set and the field is not nullable.');
 						}
 					}
 				}
@@ -88,23 +92,34 @@ class ToOneContainer extends BaseContainer
 				}
 
 				if ($errorMessage) {
-					throw new Exception('The error message must not be set unless the "isFilled" component is set.');
+					throw new Exception('Error message must not be set unless the "isFilled" component is set.');
 				}
 			}
 		});
 	}
 
+	/**
+	 * @param Nette\Forms\Controls\BaseControl $isFilledComponent
+	 * @return $this
+	 */
 	public function setIsFilledComponent(Nette\Forms\Controls\BaseControl $isFilledComponent)
 	{
 		$this->isFilledComponent = $isFilledComponent;
 		return $this;
 	}
 
+	/**
+	 * @return Nette\Forms\Controls\BaseControl
+	 */
 	public function getIsFilledComponent()
 	{
 		return $this->isFilledComponent;
 	}
 
+	/**
+	 * @param bool $excludeIsFilledComponent
+	 * @return bool
+	 */
 	public function isEmpty($excludeIsFilledComponent = false)
 	{
 		$values = $this->getValues('array');
@@ -115,6 +130,10 @@ class ToOneContainer extends BaseContainer
 		return !array_filter($values);
 	}
 
+	/**
+	 * @param ClassMetadata $relationMeta
+	 * @return mixed|object
+	 */
 	public function createEntity(ClassMetadata $relationMeta)
 	{
 		if (! $this->entityFactory) {

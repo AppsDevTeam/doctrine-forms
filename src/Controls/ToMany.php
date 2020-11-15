@@ -15,7 +15,7 @@ class ToMany implements IComponentMapper
 	/**
 	 * @var EntityFormMapper
 	 */
-	private $mapper;
+	private EntityFormMapper $mapper;
 
 	public function __construct(EntityFormMapper $mapper)
 	{

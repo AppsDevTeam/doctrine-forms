@@ -2,58 +2,55 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
+use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 use Nette\Application\UI;
+use Nette\Application\UI\Presenter;
 
-class ToManyContainer extends Nette\Forms\Container
+class ToManyContainer extends BaseContainer
 {
 	const NEW_PREFIX = '_new_';
 
 	/**
-	 * @var Collection
+	 * @var bool
 	 */
-	private $collection;
-
-	/**
-	 * @var object
-	 */
-	private $parentEntity;
-
-	/**
-	 * @var Nette\Utils\Callback
-	 */
-	private $containerFactory;
-
-	/**
-	 * @var callable
-	 */
-	private $entityFactory;
-
-	/**
-	 * @var string
-	 */
-	private $containerClass = 'Nette\Forms\Container';
+	private bool $allowRemove = FALSE;
 
 	/**
 	 * @var bool
 	 */
-	private $allowRemove = FALSE;
+	private bool $disableAdding = FALSE;
 
 	/**
-	 * @var bool
+	 * @var ToOneContainerFactory
 	 */
-	private $disableAdding = FALSE;
+	private ToOneContainerFactory $toOneContainerFactory;
 
-	public function __construct($containerFactory, $entityFactory)
+	/**
+	 * ToManyContainer constructor.
+	 * @param $containerFactory
+	 * @param $entityFactory
+	 */
+	public function __construct()
 	{
-		$this->containerFactory = $containerFactory;
-		$this->entityFactory = $entityFactory;
-		$this->collection = new ArrayCollection();
+		$this->monitor(Presenter::class, function() {
+			$this->onAttach();
+		});
 	}
 
+	public function setToOneContainerFactory($toOneContainerFactory)
+	{
+		$this->toOneContainerFactory = $toOneContainerFactory;
+		return $this;
+	}
+
+	/**
+	 * @param Nette\ComponentModel\IContainer $parent
+	 */
 	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
 	{
 		parent::validateParent($parent);
@@ -76,38 +73,15 @@ class ToManyContainer extends Nette\Forms\Container
 		return $this[ToManyContainer::NEW_PREFIX . $name];
 	}
 
-	public function createEntity(ClassMetadata $relationMeta)
-	{
-		if (! $this->entityFactory) {
-			return $relationMeta->newInstance();
-		}
-
-		return call_user_func($this->entityFactory, $relationMeta);
-	}
-
+	/**
+	 * @param $parent
+	 * @param Collection $collection
+	 */
 	public function bindCollection($parent, Collection $collection)
 	{
 		if (!is_object($parent)) {
 			throw new InvalidArgumentException('Expected entity, but ' . gettype($parent) . ' given.');
 		}
-
-		$this->parentEntity = $parent;
-		$this->collection = $collection;
-	}
-
-	/**
-	 * @param string $containerClass
-	 * @throws \ADT\DoctrineForms\InvalidArgumentException
-	 * @return ToManyContainer
-	 */
-	public function setContainerClass($containerClass)
-	{
-		if (!is_subclass_of($containerClass, 'Nette\Forms\Container')) {
-			throw new InvalidArgumentException('Expected descendant of Nette\Forms\Container, but ' . $containerClass . ' given.');
-		}
-
-		$this->containerClass = $containerClass;
-		return $this;
 	}
 
 	/**
@@ -147,33 +121,28 @@ class ToManyContainer extends Nette\Forms\Container
 	}
 
 	/**
-	 * @return \Doctrine\Common\Collections\Collection
+	 * @return Collection
 	 */
 	public function getCollection()
 	{
 		return $this->collection;
 	}
 
+	/**
+	 * @param string $name
+	 * @return Nette\ComponentModel\IComponent|null
+	 */
 	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
-		$class = $this->containerClass;
-		$this[$name] = $container = new $class();
-		$this->containerFactory->call($this->parent, $container);
+		$this[$name] = $container = $this->toOneContainerFactory->create();
+
+		$this->containerFactory->call($this->getForm(), $container);
 
 		return $container;
 	}
 
-	/**
-	 * @param \Nette\ComponentModel\Container $obj
-	 */
-	protected function attached($obj): void
+	protected function onAttach(): void
 	{
-		parent::attached($obj);
-
-		if (!$obj instanceof UI\Presenter) {
-			return;
-		}
-
 		/** @var UI\Form|EntityForm $form */
 		$form = $this->getForm();
 
@@ -196,14 +165,5 @@ class ToManyContainer extends Nette\Forms\Container
 		$path = explode(self::NAME_SEPARATOR, $this->lookupPath('Nette\Application\UI\Form'));
 		$allData = $this->getForm()->getHttpData();
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
-	}
-
-	public static function register($name = 'toMany')
-	{
-		Nette\Forms\Container::extensionMethod($name, function (Nette\Forms\Container $_this, $name, $containerFactory = NULL, $entityFactory = NULL) {
-			$container = new ToManyContainer($containerFactory, $entityFactory);
-
-			return $_this[$name] = $container;
-		});
 	}
 }

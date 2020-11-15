@@ -2,6 +2,7 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Iterator;
@@ -26,7 +27,7 @@ class EntityFormMapper
 	/**
 	 * @var PropertyAccessor
 	 */
-	private PropertyAccessor $accessor;
+	private ?PropertyAccessor $accessor = null;
 
 	public function __construct(EntityManager $entityManager)
 	{

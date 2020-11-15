@@ -13,10 +13,7 @@ class FormsExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$builder->addDefinition($this->prefix('entityFormMapper'))
-			->setClass('ADT\DoctrineForms\EntityFormMapper');
-
-		$builder->addDefinition($this->prefix('controlFactory'))
-			->setClass('ADT\DoctrineForms\Builder\ControlFactory');
+			->setFactory('ADT\DoctrineForms\EntityFormMapper');
 	}
 
 	public static function register(Configurator $configurator)

@@ -2,11 +2,15 @@
 
 namespace ADT\DoctrineForms\Controls;
 
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use ADT;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\MappingException;
+use Exception;
 use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\ChoiceControl;
@@ -20,17 +24,17 @@ class TextControl implements IComponentMapper
 	/**
 	 * @var EntityFormMapper
 	 */
-	private $mapper;
+	private EntityFormMapper $mapper;
 
 	/**
 	 * @var PropertyAccessor
 	 */
-	private $accessor;
+	private ?PropertyAccessor $accessor;
 
 	/**
 	 * @var EntityManager
 	 */
-	private $em;
+	private EntityManager $em;
 
 	public function __construct(EntityFormMapper $mapper)
 	{
@@ -45,6 +49,7 @@ class TextControl implements IComponentMapper
 	 * @param $entity
 	 * @param bool $force
 	 * @return bool
+	 * @throws MappingException
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE): bool
 	{
@@ -69,21 +74,7 @@ class TextControl implements IComponentMapper
 			return FALSE;
 		}
 
-		/** @var ChoiceControl|MultiChoiceControl $component */
-		if (
-			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
-			&&
-			!count($component->getItems())
-			&&
-			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
-		) {
-			$criteria = $component->getOption(self::ITEMS_FILTER, array());
-			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
-
-			$related = $this->relatedMetadata($entity, $name);
-			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);
-			$component->setItems($items);
-		}
+		$this->setItems($component, $entity, $name);
 
 		/** @var MultiChoiceControl $component */
 		if ($component instanceof MultiChoiceControl) {
@@ -129,10 +120,11 @@ class TextControl implements IComponentMapper
 
 	/**
 	 * @param ClassMetadata $meta
-	 * @param array $criteria
-	 * @param array $orderBy
-	 * @param string|callable $nameKey
+	 * @param $criteria
+	 * @param $orderBy
+	 * @param $nameKey
 	 * @return array
+	 * @throws MappingException
 	 */
 	private function findPairs(ClassMetadata $meta, $criteria, $orderBy, $nameKey)
 	{
@@ -150,7 +142,11 @@ class TextControl implements IComponentMapper
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @param ClassMetadata $meta
+	 * @param Component $component
+	 * @param $entity
+	 * @return bool
+	 * @throws Exception
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
@@ -160,8 +156,8 @@ class TextControl implements IComponentMapper
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
 			$value = $component->getValue();
-			if (is_object($value) && $value instanceof \DateTimeImmutable) {
-				$value = new \DateTime($value->format('Y-m-d H:i:s'));
+			if (is_object($value) && $value instanceof DateTimeImmutable) {
+				$value = new DateTime($value->format('Y-m-d H:i:s'));
 			}
 			elseif ($meta->isNullable($component->getName()) && $value === '') {
 				$value = NULL;
@@ -185,21 +181,7 @@ class TextControl implements IComponentMapper
 			return FALSE;
 		}
 
-		/** @var ChoiceControl|MultiChoiceControl $component */
-		if (
-			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
-			&&
-			!count($component->getItems())
-			&&
-			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
-		) {
-			$criteria = $component->getOption(self::ITEMS_FILTER, array());
-			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
-
-			$related = $this->relatedMetadata($entity, $name);
-			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);
-			$component->setItems($items);
-		}
+		$this->setItems($component, $entity, $name);
 
 		$identifier = $component->getValue();
 
@@ -266,5 +248,30 @@ class TextControl implements IComponentMapper
 		}
 
 		return $collection;
+	}
+
+	/**
+	 * @param Component $component
+	 * @param $entity
+	 * @param $name
+	 * @throws MappingException
+	 */
+	private function setItems(Component $component, $entity, $name)
+	{
+		/** @var ChoiceControl|MultiChoiceControl $component */
+		if (
+			($component instanceof ChoiceControl || $component instanceof MultiChoiceControl)
+			&&
+			!count($component->getItems())
+			&&
+			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
+		) {
+			$criteria = $component->getOption(self::ITEMS_FILTER, array());
+			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
+
+			$related = $this->relatedMetadata($entity, $name);
+			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);
+			$component->setItems($items);
+		}
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
 use Nette;
 use Nette\Application\UI;
 
@@ -48,20 +49,6 @@ trait EntityForm
 		}
 
 		return $this->entityMapper;
-	}
-
-	/**
-	 * @deprecated
-	 * @param object $entity
-	 * @return EntityForm|UI\Form
-	 */
-	public function bindEntity($entity)
-	{
-		$this->entity = $entity;
-
-		$this->mapToForm();
-
-		return $this;
 	}
 
 	/**

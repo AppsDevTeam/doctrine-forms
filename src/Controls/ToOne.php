@@ -1,52 +1,33 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
+namespace ADT\DoctrineForms\Controls;
 
-namespace Kdyby\DoctrineForms\Controls;
-
+use ADT\DoctrineForms\ToOneContainer;
 use Doctrine\Common\Collections\Collection;
-use Kdyby;
-use Kdyby\DoctrineForms\EntityFormMapper;
-use Kdyby\DoctrineForms\IComponentMapper;
+use ADT\DoctrineForms\EntityFormMapper;
+use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Nette;
+use Doctrine\ORM\ORMException;
 use Nette\ComponentModel\Component;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class ToOne implements IComponentMapper
 {
-	use \Nette\SmartObject;
-
 	/**
 	 * @var EntityFormMapper
 	 */
-	private $mapper;
-
-
+	private EntityFormMapper $mapper;
 
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
 	}
 
-
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity)
+	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof Kdyby\DoctrineForms\ToOneContainer) {
+		if (!$component instanceof ToOneContainer) {
 			return FALSE;
 		}
 
@@ -69,14 +50,16 @@ class ToOne implements IComponentMapper
 		return TRUE;
 	}
 
-
-
 	/**
-	 * {@inheritdoc}
+	 * @param ClassMetadata $meta
+	 * @param Component $component
+	 * @param $entity
+	 * @return bool
+	 * @throws ORMException
 	 */
-	public function save(ClassMetadata $meta, Component $component, $entity)
+	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof Kdyby\DoctrineForms\ToOneContainer) {
+		if (!$component instanceof ToOneContainer) {
 			return FALSE;
 		}
 
@@ -126,8 +109,12 @@ class ToOne implements IComponentMapper
 		return TRUE;
 	}
 
-
-
+	/**
+	 * @param ClassMetadata $meta
+	 * @param $component
+	 * @param $entity
+	 * @throws ORMException
+	 */
 	private function removeComponent(ClassMetadata $meta, $component, $entity)
 	{
 		$relation = $this->getRelation($meta, $component, $entity);
@@ -140,15 +127,13 @@ class ToOne implements IComponentMapper
 		$meta->setFieldValue($entity, $component->getName(), null);
 	}
 
-
-
 	/**
 	 * @param ClassMetadata $meta
-	 * @param object $entity
-	 * @param string $field
-	 * @return bool|object
+	 * @param ToOneContainer $component
+	 * @param $entity
+	 * @return bool|mixed|object
 	 */
-	private function getRelation(ClassMetadata $meta, Kdyby\DoctrineForms\ToOneContainer $component, $entity)
+	private function getRelation(ClassMetadata $meta, ToOneContainer $component, $entity)
 	{
 		$field = $component->getName();
 
@@ -172,5 +157,4 @@ class ToOne implements IComponentMapper
 
 		return $relation;
 	}
-
 }

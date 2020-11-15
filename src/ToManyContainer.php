@@ -1,29 +1,15 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
-
-namespace Kdyby\DoctrineForms;
+namespace ADT\DoctrineForms;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Kdyby;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 use Nette\Application\UI;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class ToManyContainer extends Nette\Forms\Container
 {
-
 	const NEW_PREFIX = '_new_';
 
 	/**
@@ -42,7 +28,7 @@ class ToManyContainer extends Nette\Forms\Container
 	private $containerFactory;
 
 	/**
-	 * @var Nette\Utils\Callback
+	 * @var callable
 	 */
 	private $entityFactory;
 
@@ -61,8 +47,6 @@ class ToManyContainer extends Nette\Forms\Container
 	 */
 	private $disableAdding = FALSE;
 
-
-
 	public function __construct($containerFactory, $entityFactory)
 	{
 		$this->containerFactory = $containerFactory;
@@ -70,22 +54,15 @@ class ToManyContainer extends Nette\Forms\Container
 		$this->collection = new ArrayCollection();
 	}
 
-
-
 	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
 	{
 		parent::validateParent($parent);
 		$this->monitor('Nette\Application\UI\Presenter');
 	}
 
-
 	/**
-	 * Create new container
-	 *
-	 * @param string|int $name
-	 *
-	 * @throws \Nette\InvalidArgumentException
-	 * @return \Nette\Forms\Container
+	 * @param null $name
+	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl
 	 */
 	public function createOne($name = NULL)
 	{
@@ -99,44 +76,39 @@ class ToManyContainer extends Nette\Forms\Container
 		return $this[ToManyContainer::NEW_PREFIX . $name];
 	}
 
-	public function createEntity(\Doctrine\ORM\Mapping\ClassMetadata $relationMeta)
+	public function createEntity(ClassMetadata $relationMeta)
 	{
 		if (! $this->entityFactory) {
 			return $relationMeta->newInstance();
 		}
 
-		return $this->entityFactory($relationMeta);
+		return call_user_func($this->entityFactory, $relationMeta);
 	}
-
 
 	public function bindCollection($parent, Collection $collection)
 	{
 		if (!is_object($parent)) {
-			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected entity, but ' . gettype($parent) . ' given.');
+			throw new InvalidArgumentException('Expected entity, but ' . gettype($parent) . ' given.');
 		}
 
 		$this->parentEntity = $parent;
 		$this->collection = $collection;
 	}
 
-
-
 	/**
 	 * @param string $containerClass
-	 * @throws \Kdyby\DoctrineForms\InvalidArgumentException
+	 * @throws \ADT\DoctrineForms\InvalidArgumentException
 	 * @return ToManyContainer
 	 */
 	public function setContainerClass($containerClass)
 	{
 		if (!is_subclass_of($containerClass, 'Nette\Forms\Container')) {
-			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected descendant of Nette\Forms\Container, but ' . $containerClass . ' given.');
+			throw new InvalidArgumentException('Expected descendant of Nette\Forms\Container, but ' . $containerClass . ' given.');
 		}
 
 		$this->containerClass = $containerClass;
 		return $this;
 	}
-
-
 
 	/**
 	 * @param boolean $allowRemove
@@ -148,8 +120,6 @@ class ToManyContainer extends Nette\Forms\Container
 		return $this;
 	}
 
-
-
 	/**
 	 * @return boolean
 	 */
@@ -157,8 +127,6 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		return $this->allowRemove;
 	}
-
-
 
 	/**
 	 * @param boolean $disableAdding
@@ -170,8 +138,6 @@ class ToManyContainer extends Nette\Forms\Container
 		return $this;
 	}
 
-
-
 	/**
 	 * @return boolean
 	 */
@@ -179,8 +145,6 @@ class ToManyContainer extends Nette\Forms\Container
 	{
 		return $this->disableAdding;
 	}
-
-
 
 	/**
 	 * @return \Doctrine\Common\Collections\Collection
@@ -190,8 +154,6 @@ class ToManyContainer extends Nette\Forms\Container
 		return $this->collection;
 	}
 
-
-
 	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
 		$class = $this->containerClass;
@@ -200,8 +162,6 @@ class ToManyContainer extends Nette\Forms\Container
 
 		return $container;
 	}
-
-
 
 	/**
 	 * @param \Nette\ComponentModel\Container $obj
@@ -228,8 +188,6 @@ class ToManyContainer extends Nette\Forms\Container
 		}
 	}
 
-
-
 	/**
 	 * @return array
 	 */
@@ -240,8 +198,6 @@ class ToManyContainer extends Nette\Forms\Container
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
 	}
 
-
-
 	public static function register($name = 'toMany')
 	{
 		Nette\Forms\Container::extensionMethod($name, function (Nette\Forms\Container $_this, $name, $containerFactory = NULL, $entityFactory = NULL) {
@@ -250,5 +206,4 @@ class ToManyContainer extends Nette\Forms\Container
 			return $_this[$name] = $container;
 		});
 	}
-
 }

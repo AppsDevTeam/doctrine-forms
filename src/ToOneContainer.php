@@ -1,23 +1,19 @@
 <?php
 
-namespace Kdyby\DoctrineForms;
+namespace ADT\DoctrineForms;
 
-use Kdyby\Doctrine\EntityManager;
+use Closure;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 
 class ToOneContainer extends Nette\Forms\Container
 {
-	protected $entityFactory;
+	protected Closure $entityFactory;
 	protected Nette\Forms\Controls\BaseControl $isFilledComponent;
 
 	public function __construct($entityFactory)
 	{
 		$this->entityFactory = $entityFactory;
-	}
-	
-	public function getEntityFactory()
-	{
-		return $this->entityFactory;
 	}
 
 	public function setIsFilledComponent(Nette\Forms\Controls\BaseControl $isFilledComponent)
@@ -41,7 +37,7 @@ class ToOneContainer extends Nette\Forms\Container
 		return !array_filter($values);
 	}
 
-	public function createEntity(\Doctrine\ORM\Mapping\ClassMetadata $relationMeta)
+	public function createEntity(ClassMetadata $relationMeta)
 	{
 		if (! $this->entityFactory) {
 			return $relationMeta->newInstance();
@@ -64,7 +60,6 @@ class ToOneContainer extends Nette\Forms\Container
 				throw new \Exception('Set the entity via "EntityForm::setEntity" method before using toOne method.');
 			}
 
-			/** @var EntityManager $em */
 			$em = $form->getEntityMapper()->getEntityManager();
 
 			$targetEntity = $em->getMetadataFactory()

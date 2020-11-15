@@ -1,52 +1,31 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
-
-namespace Kdyby\DoctrineForms\Controls;
+namespace ADT\DoctrineForms\Controls;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Kdyby;
-use Kdyby\DoctrineForms\EntityFormMapper;
-use Kdyby\DoctrineForms\IComponentMapper;
-use Kdyby\DoctrineForms\ToManyContainer;
+use ADT\DoctrineForms\EntityFormMapper;
+use ADT\DoctrineForms\IComponentMapper;
+use ADT\DoctrineForms\ToManyContainer;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette;
 use Nette\ComponentModel\Component;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class ToMany implements IComponentMapper
 {
-	use \Nette\SmartObject;
-	
 	/**
 	 * @var EntityFormMapper
 	 */
 	private $mapper;
-
-
 
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
 	}
 
-
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity)
+	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof ToManyContainer) {
 			return FALSE;
@@ -74,12 +53,10 @@ class ToMany implements IComponentMapper
 		return TRUE;
 	}
 
-
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function save(ClassMetadata $meta, Component $component, $entity)
+	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof ToManyContainer) {
 			return FALSE;
@@ -118,13 +95,11 @@ class ToMany implements IComponentMapper
 		return TRUE;
 	}
 
-
-
 	/**
 	 * @param ClassMetadata $meta
-	 * @param object $entity
-	 * @param string $field
-	 * @return Collection
+	 * @param $entity
+	 * @param $field
+	 * @return bool|ArrayCollection|mixed
 	 */
 	private function getCollection(ClassMetadata $meta, $entity, $field)
 	{
@@ -140,5 +115,4 @@ class ToMany implements IComponentMapper
 
 		return $collection;
 	}
-
 }

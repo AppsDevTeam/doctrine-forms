@@ -1,56 +1,42 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
+namespace ADT\DoctrineForms\Builder;
 
-namespace Kdyby\DoctrineForms\Builder;
-
+use ADT\DoctrineForms\EntityForm;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
-use Kdyby;
-use Kdyby\DoctrineForms\EntityFormMapper;
-use Kdyby\DoctrineForms\InvalidArgumentException;
-use Kdyby\DoctrineForms\InvalidStateException;
-use Kdyby\DoctrineForms\NotImplementedException;
+use ADT\DoctrineForms\EntityFormMapper;
+use ADT\DoctrineForms\InvalidArgumentException;
+use ADT\DoctrineForms\InvalidStateException;
+use ADT\DoctrineForms\NotImplementedException;
 use Nette;
+use Nette\Forms\Container;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class EntityBuilder
 {
-	use \Nette\SmartObject;
-
 	const MODE_WHITELIST = 'whitelist';
 	const MODE_BLACKLIST = 'blacklist';
 
 	/**
-	 * @var \Doctrine\ORM\EntityManager
+	 * @var EntityManager
 	 */
-	private $em;
+	private EntityManager $em;
 
 	/**
 	 * @var EntityFormMapper
 	 */
-	private $mapper;
+	private EntityFormMapper $mapper;
 
 	/**
-	 * @var \Nette\Forms\Container
+	 * @var Container
 	 */
-	private $container;
+	private Container $container;
 
 	/**
 	 * @var string
 	 */
-	private $mode = self::MODE_WHITELIST;
+	private string $mode = self::MODE_WHITELIST;
 
 	/**
 	 * @var array
@@ -77,22 +63,18 @@ class EntityBuilder
 	 */
 	private $controlFactory;
 
-
-
-	public function __construct(Nette\Forms\Container $container, EntityFormMapper $mapper, ControlFactory $controlFactory = NULL, EntityManager $em = NULL)
+	public function __construct(Container $container, EntityFormMapper $mapper, ControlFactory $controlFactory = NULL, EntityManager $em = NULL)
 	{
 		$this->container = $container;
 		$this->mapper = $mapper;
 		$this->em = $em ?: $mapper->getEntityManager();
 		$this->controlFactory = $controlFactory ?: new ControlFactory();
 
-		/** @var Nette\Application\UI\Form|Kdyby\DoctrineForms\EntityForm $form */
+		/** @var Nette\Application\UI\Form|EntityForm $form */
 		if (method_exists($form = $container->getForm(FALSE), 'injectEntityMapper')) {
 			$form->injectEntityMapper($this->mapper);
 		}
 	}
-
-
 
 	/**
 	 * @param object $entity
@@ -115,8 +97,8 @@ class EntityBuilder
 
 	/**
 	 * @param string $type
-	 * @throws \Kdyby\DoctrineForms\InvalidArgumentException
-	 * @throws \Kdyby\DoctrineForms\InvalidStateException
+	 * @throws \ADT\DoctrineForms\InvalidArgumentException
+	 * @throws \ADT\DoctrineForms\InvalidStateException
 	 * @return EntityBuilder
 	 */
 	public function bindEntityType($type)
@@ -211,11 +193,9 @@ class EntityBuilder
 		return $this->mode === self::MODE_BLACKLIST;
 	}
 
-
-
 	/**
 	 * @param array|string $fields
-	 * @return Nette\Application\UI\Form|Nette\Forms\Container
+	 * @return Nette\Application\UI\Form|Container
 	 */
 	public function buildFields($fields = array())
 	{
@@ -244,8 +224,6 @@ class EntityBuilder
 		return $this->container;
 	}
 
-
-
 	public function buildField($name)
 	{
 		if (count($relation = explode('.', $name, 2)) == 2) {
@@ -266,19 +244,15 @@ class EntityBuilder
 		return $control;
 	}
 
-
-
 	/**
 	 * @param string $name
 	 * @param array $fields
-	 * @return Nette\Application\UI\Form|Nette\Forms\Container
+	 * @return Nette\Application\UI\Form|Container
 	 */
 	public function buildRelation($name, array $fields = array())
 	{
 		return $this->relationBuilder($name)->buildFields($fields);
 	}
-
-
 
 	/**
 	 * @param string $name
@@ -300,7 +274,7 @@ class EntityBuilder
 
 		if ($class->isSingleValuedAssociation($name)) {
 			if (!$this->container->getComponent($name, FALSE)) {
-				$this->container->addComponent(new Nette\Forms\Container(), $name);
+				$this->container->addComponent(new Container(), $name);
 			}
 
 			$builder = new EntityBuilder($this->container[$name], $this->mapper, $this->controlFactory, $this->em);
@@ -318,6 +292,4 @@ class EntityBuilder
 			throw new NotImplementedException;
 		}
 	}
-
-
 }

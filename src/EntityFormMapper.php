@@ -1,49 +1,32 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
-
-namespace Kdyby\DoctrineForms;
+namespace ADT\DoctrineForms;
 
 use Doctrine\ORM\EntityManager;
-use Kdyby;
-use Nette;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Iterator;
+use Nette\ComponentModel\IComponent;
 use Nette\Forms\Container;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\IControl;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class EntityFormMapper
 {
-	
-	use \Nette\SmartObject;
-
 	/**
 	 * @var EntityManager
 	 */
-	private $em;
+	private EntityManager $em;
 
 	/**
 	 * @var IComponentMapper[]
 	 */
-	private $componentMappers = array();
+	private array $componentMappers;
 
 	/**
 	 * @var PropertyAccessor
 	 */
-	private $accessor;
-
-
+	private PropertyAccessor $accessor;
 
 	public function __construct(EntityManager $entityManager)
 	{
@@ -56,17 +39,8 @@ class EntityFormMapper
 		);
 	}
 
-
-
-	public function registerMapper(IComponentMapper $mapper)
-	{
-		array_unshift($this->componentMappers, $mapper);
-	}
-
-
-
 	/**
-	 * @return \Symfony\Component\PropertyAccess\PropertyAccessor
+	 * @return PropertyAccessor
 	 */
 	public function getAccessor()
 	{
@@ -77,36 +51,30 @@ class EntityFormMapper
 		return $this->accessor;
 	}
 
-
-
 	/**
-	 * @return \Doctrine\ORM\EntityManager|\Kdyby\Doctrine\EntityManager
+	 * @return EntityManager
 	 */
 	public function getEntityManager()
 	{
 		return $this->em;
 	}
 
-
-
 	/**
 	 * @param object $entity
-	 * @param BaseControl|Container $formElement
+	 * @param IComponent $formElement
 	 */
-	public function load($entity, $formElement, $forceValues = FALSE)
+	public function load($entity, $formElement)
 	{
 		$meta = $this->getMetadata($entity);
 
 		foreach (self::iterate($formElement) as $component) {
 			foreach ($this->componentMappers as $mapper) {
-				if ($mapper->load($meta, $component, $entity, $forceValues)) {
+				if ($mapper->load($meta, $component, $entity)) {
 					break;
 				}
 			}
 		}
 	}
-
-
 
 	/**
 	 * @param object $entity
@@ -125,12 +93,9 @@ class EntityFormMapper
 		}
 	}
 
-
-
 	/**
-	 * @param BaseControl|Container $formElement
-	 * @return array|\ArrayIterator
-	 * @throws \Kdyby\DoctrineForms\InvalidArgumentException
+	 * @param $formElement
+	 * @return Iterator|IControl[]
 	 */
 	private static function iterate($formElement)
 	{
@@ -141,24 +106,21 @@ class EntityFormMapper
 			return array($formElement);
 
 		} else {
-			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected Nette\Forms\Container or Nette\Forms\IControl, but ' . get_class($formElement) . ' given');
+			throw new InvalidArgumentException('Expected Nette\Forms\Container or Nette\Forms\IControl, but ' . get_class($formElement) . ' given');
 		}
 	}
 
-
-
 	/**
 	 * @param object $entity
-	 * @return Kdyby\Doctrine\Mapping\ClassMetadata
-	 * @throws \Kdyby\DoctrineForms\InvalidArgumentException
+	 * @return ClassMetadata
+	 * @throws InvalidArgumentException
 	 */
 	private function getMetadata($entity)
 	{
 		if (!is_object($entity)) {
-			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
+			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
 		}
 
 		return $this->em->getClassMetadata(get_class($entity));
 	}
-
 }

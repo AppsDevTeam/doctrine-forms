@@ -1,32 +1,23 @@
-<?php // lint >= 5.4
+<?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
+namespace ADT\DoctrineForms;
 
-namespace Kdyby\DoctrineForms;
-
-use Kdyby;
 use Nette;
 use Nette\Application\UI;
-use Nette\Forms\Controls\BaseControl;
-
-
 
 /**
- * @author Filip Procházka <filip@prochazka.su>
- *
  * @method ToManyContainer toMany($name, $containerFactory = NULL, $entityFactory = NULL)
  * @method onSubmit(UI\Form $self)
  * @method onError(UI\Form $self)
  */
+
+/**
+ * Trait EntityForm
+ * @package ADT\DoctrineForms
+ * @target
+ */
 trait EntityForm
 {
-
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -36,8 +27,6 @@ trait EntityForm
 	 * @var object
 	 */
 	private $entity;
-
-
 
 	/**
 	 * @param EntityFormMapper $mapper
@@ -49,21 +38,17 @@ trait EntityForm
 		return $this;
 	}
 
-
-
 	/**
-	 * @return \Kdyby\DoctrineForms\EntityFormMapper
+	 * @return \ADT\DoctrineForms\EntityFormMapper
 	 */
 	public function getEntityMapper()
 	{
 		if ($this->entityMapper === NULL) {
-			$this->entityMapper = $this->getServiceLocator()->getByType('Kdyby\DoctrineForms\EntityFormMapper');
+			$this->entityMapper = $this->getServiceLocator()->getByType('ADT\DoctrineForms\EntityFormMapper');
 		}
 
 		return $this->entityMapper;
 	}
-
-
 
 	/**
 	 * @deprecated
@@ -79,22 +64,18 @@ trait EntityForm
 		return $this;
 	}
 
-
-
 	/**
 	 * @return object
 	 */
 	public function setEntity($entity)
 	{
 		if (!is_object($entity)) {
-			throw new Kdyby\DoctrineForms\InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
+			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
 		}
 		
 		$this->entity = $entity;
 		return $this;
 	}
-
-
 
 	/**
 	 * @return object
@@ -103,8 +84,6 @@ trait EntityForm
 	{
 		return $this->entity;
 	}
-
-
 
 	public function fireEvents(): void
 	{
@@ -144,8 +123,6 @@ trait EntityForm
 		$this->onSubmit($this);
 	}
 
-
-
 	/**
 	 * @return Nette\DI\Container|\SystemContainer
 	 */
@@ -158,8 +135,6 @@ trait EntityForm
 		return $presenter->getContext();
 	}
 
-
-
 	public function mapToForm()
 	{
 		if (!$this->entity) {
@@ -168,8 +143,6 @@ trait EntityForm
 
 		$this->getEntityMapper()->load($this->entity, $this);
 	}
-
-
 
 	protected function mapToEntity()
 	{

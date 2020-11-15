@@ -1,21 +1,12 @@
 <?php
 
-/**
- * This file is part of the Kdyby (http://www.kdyby.org)
- *
- * Copyright (c) 2008 Filip Procházka (filip@prochazka.su)
- *
- * For the full copyright and license information, please view the file license.txt that was distributed with this source code.
- */
-
-namespace Kdyby\DoctrineForms\Controls;
+namespace ADT\DoctrineForms\Controls;
 
 use Doctrine\ORM\EntityManager;
-use Kdyby;
-use Kdyby\DoctrineForms\EntityFormMapper;
-use Kdyby\DoctrineForms\IComponentMapper;
+use ADT;
+use ADT\DoctrineForms\EntityFormMapper;
+use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Nette;
 use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\ChoiceControl;
@@ -24,15 +15,8 @@ use Symfony\Component\PropertyAccess\Exception\UninitializedPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Doctrine\Common\Collections\ArrayCollection;
 
-
-
-/**
- * @author Filip Procházka <filip@prochazka.su>
- */
 class TextControl implements IComponentMapper
 {
-	use \Nette\SmartObject;
-	
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -48,8 +32,6 @@ class TextControl implements IComponentMapper
 	 */
 	private $em;
 
-
-
 	public function __construct(EntityFormMapper $mapper)
 	{
 		$this->mapper = $mapper;
@@ -57,12 +39,14 @@ class TextControl implements IComponentMapper
 		$this->accessor = $mapper->getAccessor();
 	}
 
-
-
 	/**
-	 * {@inheritdoc}
+	 * @param ClassMetadata $meta
+	 * @param Component $component
+	 * @param $entity
+	 * @param bool $force
+	 * @return bool
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE)
+	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE): bool
 	{
 		$valueSetter = $force ? 'setValue' : 'setDefaultValue';
 
@@ -131,12 +115,10 @@ class TextControl implements IComponentMapper
 		return TRUE;
 	}
 
-
-
 	/**
 	 * @param string|object $entity
 	 * @param string $relationName
-	 * @return ClassMetadata|Kdyby\Doctrine\Mapping\ClassMetadata
+	 * @return ClassMetadata
 	 */
 	private function relatedMetadata($entity, $relationName)
 	{
@@ -144,8 +126,6 @@ class TextControl implements IComponentMapper
 		$targetClass = $meta->getAssociationTargetClass($relationName);
 		return $this->em->getClassMetadata($targetClass);
 	}
-
-
 
 	/**
 	 * @param ClassMetadata $meta
@@ -158,10 +138,6 @@ class TextControl implements IComponentMapper
 	{
 		$repository = $this->em->getRepository($meta->getName());
 
-		if ($repository instanceof Kdyby\Doctrine\EntityDao && !is_callable($nameKey)) {
-			return $repository->findPairs($criteria, $nameKey, $orderBy);
-		}
-
 		$items = array();
 		$idKey = $meta->getSingleIdentifierFieldName();
 		foreach ($repository->findBy($criteria, $orderBy) as $entity) {
@@ -173,12 +149,10 @@ class TextControl implements IComponentMapper
 		return $items;
 	}
 
-
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function save(ClassMetadata $meta, Component $component, $entity)
+	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof BaseControl) {
 			return FALSE;
@@ -273,14 +247,11 @@ class TextControl implements IComponentMapper
 		return TRUE;
 	}
 
-
-
-
 	/**
 	 * @param ClassMetadata $meta
-	 * @param object $entity
-	 * @param string $field
-	 * @return Collection
+	 * @param $entity
+	 * @param $field
+	 * @return bool|ArrayCollection|mixed
 	 */
 	private function getCollection(ClassMetadata $meta, $entity, $field)
 	{
@@ -296,5 +267,4 @@ class TextControl implements IComponentMapper
 
 		return $collection;
 	}
-
 }

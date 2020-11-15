@@ -10,7 +10,6 @@ class ToOneContainerFactory
 	private ?Closure $containerFactory;
 	private ?Closure $entityFactory;
 	private ?string $isFilledComponentName;
-	private ?string $errorMessage;
 
 	/**
 	 * ToOneContainerFactory constructor.
@@ -18,15 +17,13 @@ class ToOneContainerFactory
 	 * @param $containerFactory
 	 * @param null $entityFactory
 	 * @param null $isFilledComponentName
-	 * @param null $errorMessage
 	 */
-	public function __construct($name, $containerFactory, $entityFactory = null, $isFilledComponentName = null, $errorMessage = null)
+	public function __construct($name, $containerFactory, $entityFactory = null, $isFilledComponentName = null)
 	{
 		$this->name = $name;
 		$this->containerFactory = $containerFactory;
 		$this->entityFactory = $entityFactory;
 		$this->isFilledComponentName = $isFilledComponentName;
-		$this->errorMessage = $errorMessage;
 	}
 
 	/**
@@ -34,6 +31,6 @@ class ToOneContainerFactory
 	 */
 	public function create()
 	{
-		return new ToOneContainer($this->name, $this->containerFactory, $this->entityFactory, $this->isFilledComponentName, $this->errorMessage);
+		return new ToOneContainer($this->name, $this->containerFactory, $this->entityFactory, $this->isFilledComponentName);
 	}
 }

@@ -21,14 +21,17 @@ class ToManyContainer extends BaseContainer
 	private bool $disableAdding = FALSE;
 
 	/**
+	 * @var string
+	 */
+	private string $errorMessage;
+
+	/**
 	 * @var ToOneContainerFactory
 	 */
 	private ToOneContainerFactory $toOneContainerFactory;
 
 	/**
 	 * ToManyContainer constructor.
-	 * @param $containerFactory
-	 * @param $entityFactory
 	 */
 	public function __construct()
 	{
@@ -50,6 +53,17 @@ class ToManyContainer extends BaseContainer
 	{
 		$this->toOneContainerFactory = $toOneContainerFactory;
 		return $this;
+	}
+
+	public function setRequired($errorMessage)
+	{
+		$this->errorMessage = $errorMessage;
+		return $this;
+	}
+
+	public function getIsRequiredMessage()
+	{
+		return $this->errorMessage;
 	}
 
 	/**

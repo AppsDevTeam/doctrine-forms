@@ -56,6 +56,29 @@ class ToMany implements IComponentMapper
 			}
 		}
 
+		if (
+			$component->getForm()->isSubmitted()
+			&&
+			iterator_count($component->getComponents(false)) === 0
+			&&
+			$component->getIsRequiredMessage()
+		) {
+			$component->createOne();
+		}
+
+		$container = $component->getComponents(false)->current();
+		if (
+			$container
+			&&
+			$container->isEmpty()
+			&&
+			($isRequiredMessage = $component->getIsRequiredMessage())
+		) {
+			$component->onValidate[] = function () use ($container, $isRequiredMessage) {
+				$container->addError($isRequiredMessage);
+			};
+		}
+
 		return TRUE;
 	}
 

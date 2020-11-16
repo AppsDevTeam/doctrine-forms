@@ -49,6 +49,13 @@ class ToMany implements IComponentMapper
 			if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
 				if ($UoW->getSingleIdentifierValue($relation)) {
 					$this->mapper->load($relation, $component[$key]);
+
+					// we have to fill isFilled component value
+					// if isFilled component is set
+					if ($component[$key]->getIsFilledComponent()) {
+						$component[$key]->getIsFilledComponent()->setDefaultValue(true);
+					}
+
 					continue;
 				}
 
@@ -56,6 +63,8 @@ class ToMany implements IComponentMapper
 			}
 		}
 
+		// if a form is submitted, there is no added row and the component is required
+		// we have to create one to add a validator to it
 		if (
 			$component->getForm()->isSubmitted()
 			&&
@@ -66,6 +75,8 @@ class ToMany implements IComponentMapper
 			$component->createOne();
 		}
 
+		// we add a validator to the first container
+		// if a validator is set
 		$container = $component->getComponents(false)->current();
 		if (
 			$container
@@ -119,7 +130,7 @@ class ToMany implements IComponentMapper
 		}
 
 		foreach ($collection as $key => $relation) {
-			if ($component->isAllowedRemove() && !in_array($key, $received)) {
+			if (!in_array($key, $received)) {
 				unset($collection[$key]);
 			}
 		}

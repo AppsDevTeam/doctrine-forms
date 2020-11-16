@@ -11,16 +11,6 @@ class ToManyContainer extends BaseContainer
 	const NEW_PREFIX = '_new_';
 
 	/**
-	 * @var bool
-	 */
-	private bool $allowRemove = FALSE;
-
-	/**
-	 * @var bool
-	 */
-	private bool $disableAdding = FALSE;
-
-	/**
 	 * @var string
 	 */
 	private string $errorMessage;
@@ -38,6 +28,22 @@ class ToManyContainer extends BaseContainer
 		$this->monitor(Presenter::class, function() {
 			$this->onAttach();
 		});
+	}
+
+	protected function onAttach(): void
+	{
+		/** @var UI\Form|EntityForm $form */
+		$form = $this->getForm();
+
+		if (!$form->isSubmitted()) {
+			return;
+		}
+
+		if ($this->getHttpData()) {
+			foreach (array_keys($this->getHttpData()) as $id) {
+				$this->getComponent($id); // eager initialize
+			}
+		}
 	}
 
 	/**
@@ -80,58 +86,6 @@ class ToManyContainer extends BaseContainer
 		}
 
 		return $this[ToManyContainer::NEW_PREFIX . $name];
-	}
-
-	/**
-	 * @param boolean $allowRemove
-	 * @return ToManyContainer
-	 */
-	public function setAllowRemove($allowRemove = TRUE)
-	{
-		$this->allowRemove = (bool) $allowRemove;
-		return $this;
-	}
-
-	/**
-	 * @return boolean
-	 */
-	public function isAllowedRemove()
-	{
-		return $this->allowRemove;
-	}
-
-	/**
-	 * @param boolean $disableAdding
-	 * @return ToManyContainer
-	 */
-	public function setDisableAdding($disableAdding = TRUE)
-	{
-		$this->disableAdding = (bool) $disableAdding;
-		return $this;
-	}
-
-	/**
-	 * @return boolean
-	 */
-	public function isDisabledAdding()
-	{
-		return $this->disableAdding;
-	}
-
-	protected function onAttach(): void
-	{
-		/** @var UI\Form|EntityForm $form */
-		$form = $this->getForm();
-
-		if (!$form->isSubmitted()) {
-			return;
-		}
-
-		if ($this->getHttpData()) {
-			foreach (array_keys($this->getHttpData()) as $id) {
-				$this->getComponent($id); // eager initialize
-			}
-		}
 	}
 
 	/**

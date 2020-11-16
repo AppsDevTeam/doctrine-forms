@@ -41,6 +41,22 @@ class ToOneContainer extends BaseContainer
 	}
 
 	/**
+	 * @param $message
+	 * @throws Exception
+	 */
+	public function validate(?array $controls = NULL): void
+	{
+		if (
+			$this->isRequired()
+			&&
+			$this->isEmpty()
+		) {
+			$this->addText(static::ERROR_CONTROL_NAME)
+				->addError($this->getRequiredMessage());
+		}
+	}
+
+	/**
 	 * @param Nette\Forms\Controls\BaseControl $isFilledComponent
 	 * @return $this
 	 */
@@ -83,32 +99,5 @@ class ToOneContainer extends BaseContainer
 		}
 
 		return call_user_func($this->entityFactory);
-	}
-
-	/**
-	 * @param $message
-	 * @throws Exception
-	 */
-	public function addError($message)
-	{
-		if ($this->getIsFilledComponent()) {
-			$this->getIsFilledComponent()->addError($message);
-		}
-		else {
-			// we set the error message to the first control,
-			// that is not hidden
-			/** @var Nette\Forms\IControl $_control */
-			foreach ($this->getControls() as $_control) {
-				if ($_control instanceof Nette\Forms\Controls\HiddenField) {
-					continue;
-				}
-
-				$_control->addError($message);
-			}
-
-			// we throw the exception
-			// if we failed to set the error message
-			throw new Exception('The "isFilledComponentName" parameter has to be specified if all container controls are of type "hidden".');
-		}
 	}
 }

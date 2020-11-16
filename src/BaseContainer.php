@@ -8,7 +8,7 @@ use Nette;
 abstract class BaseContainer extends Nette\Forms\Container
 {
 	// because there is no "addError" method in Container class
-	// we have to create a IControl instance and call "addError" on it
+	// we have to create an IControl instance and call "addError" on it
 	// the control must not be an instance of "HiddenField"
 	// otherwise the error will be added to the form instead of the container
 	const ERROR_CONTROL_NAME = '_containerError_';

@@ -83,6 +83,7 @@ class ToOne implements IComponentMapper
 		}
 		// we want to delete the entity
 		// if isFilled component is set and any other container control is filled
+		// we use this when someone updated the old values with the new ones
 		elseif (
 			$relation->getId()
 			&&

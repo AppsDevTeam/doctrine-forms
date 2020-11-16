@@ -63,33 +63,6 @@ class ToMany implements IComponentMapper
 			}
 		}
 
-//		// if a form is submitted, there is no added row and the component is required
-//		// we have to create one to add a validator to it
-//		if (
-//			$component->getForm()->isSubmitted()
-//			&&
-//			iterator_count($component->getComponents(false)) === 0
-//			&&
-//			$component->getIsRequiredMessage()
-//		) {
-//			$component->createOne();
-//		}
-
-		// we add a validator to the first container
-		// if a validator is set
-		$container = $component->getComponents(false)->current();
-		if (
-			$container
-			&&
-			$container->isEmpty()
-			&&
-			($isRequiredMessage = $component->getIsRequiredMessage())
-		) {
-			$component->onValidate[] = function () use ($container, $isRequiredMessage) {
-				$container->addError($isRequiredMessage);
-			};
-		}
-
 		return TRUE;
 	}
 

@@ -63,17 +63,17 @@ class ToMany implements IComponentMapper
 			}
 		}
 
-		// if a form is submitted, there is no added row and the component is required
-		// we have to create one to add a validator to it
-		if (
-			$component->getForm()->isSubmitted()
-			&&
-			iterator_count($component->getComponents(false)) === 0
-			&&
-			$component->getIsRequiredMessage()
-		) {
-			$component->createOne();
-		}
+//		// if a form is submitted, there is no added row and the component is required
+//		// we have to create one to add a validator to it
+//		if (
+//			$component->getForm()->isSubmitted()
+//			&&
+//			iterator_count($component->getComponents(false)) === 0
+//			&&
+//			$component->getIsRequiredMessage()
+//		) {
+//			$component->createOne();
+//		}
 
 		// we add a validator to the first container
 		// if a validator is set
@@ -130,7 +130,7 @@ class ToMany implements IComponentMapper
 		}
 
 		foreach ($collection as $key => $relation) {
-			if (!in_array($key, $received)) {
+			if (!in_array((string) $key, $received)) {
 				unset($collection[$key]);
 			}
 		}

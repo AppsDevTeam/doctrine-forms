@@ -11,11 +11,6 @@ class ToManyContainer extends BaseContainer
 	const NEW_PREFIX = '_new_';
 
 	/**
-	 * @var string
-	 */
-	private string $errorMessage;
-
-	/**
 	 * @var ToOneContainerFactory
 	 */
 	private ToOneContainerFactory $toOneContainerFactory;
@@ -47,6 +42,21 @@ class ToManyContainer extends BaseContainer
 	}
 
 	/**
+	 * @param array|null $controls
+	 */
+	public function validate(?array $controls = NULL): void
+	{
+		if (
+			$this->isRequired()
+			&&
+			!iterator_count($this->getComponents())
+		) {
+			$this->addText(static::ERROR_CONTROL_NAME)
+				->addError($this->getRequiredMessage());
+		}
+	}
+
+	/**
 	 * @param string $name
 	 * @return Nette\ComponentModel\IComponent|null
 	 */
@@ -60,18 +70,7 @@ class ToManyContainer extends BaseContainer
 		$this->toOneContainerFactory = $toOneContainerFactory;
 		return $this;
 	}
-
-	public function setRequired($errorMessage)
-	{
-		$this->errorMessage = $errorMessage;
-		return $this;
-	}
-
-	public function getIsRequiredMessage()
-	{
-		return $this->errorMessage;
-	}
-
+	
 	/**
 	 * @param null $name
 	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl

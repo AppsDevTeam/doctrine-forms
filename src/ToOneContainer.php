@@ -18,7 +18,7 @@ class ToOneContainer extends BaseContainer
 	/**
 	 * @var Nette\Forms\Controls\BaseControl
 	 */
-	protected Nette\Forms\Controls\BaseControl $isFilledComponent;
+	protected ?Nette\Forms\Controls\BaseControl $isFilledComponent = null;
 
 	/**
 	 * ToOneContainer constructor.

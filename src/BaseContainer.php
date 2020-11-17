@@ -18,7 +18,7 @@ abstract class BaseContainer extends Nette\Forms\Container
 	 */
 	private ?string $requiredMessage = null;
 
-	public function setRequired(string $message)
+	public function setRequired(?string $message)
 	{
 		$this->requiredMessage = $message;
 		return $this;
@@ -36,13 +36,13 @@ abstract class BaseContainer extends Nette\Forms\Container
 
 	public static function register()
 	{
-		Nette\Forms\Container::extensionMethod('toOne', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory, ?string $isFilledComponentName, ?string $isRequiredMessage) {
+		Nette\Forms\Container::extensionMethod('toOne', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory = null, ?string $isFilledComponentName = null, ?string $isRequiredMessage = null) {
 			return $_this[$name] = (new ToOneContainerFactory($name, $containerFactory, $entityFactory, $isFilledComponentName, $isRequiredMessage))
 				->create()
 				->setRequired($isRequiredMessage);
 		});
 
-		Nette\Forms\Container::extensionMethod('toMany', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory, ?string $isFilledComponentName, ?string $isRequiredMessage) {
+		Nette\Forms\Container::extensionMethod('toMany', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory = null, ?string $isFilledComponentName = null, ?string $isRequiredMessage = null) {
 			return $_this[$name] = (new ToManyContainer)
 				->setToOneContainerFactory(new ToOneContainerFactory($name, $containerFactory, $entityFactory, $isFilledComponentName))
 				->setRequired($isRequiredMessage);

@@ -63,6 +63,10 @@ class ToMany implements IComponentMapper
 			}
 		}
 
+		if ($component->getOnAfterMapToForm()) {
+			$component->getOnAfterMapToForm()($component, $entity);
+		}
+
 		return TRUE;
 	}
 
@@ -106,6 +110,10 @@ class ToMany implements IComponentMapper
 			if (!in_array((string) $key, $received)) {
 				unset($collection[$key]);
 			}
+		}
+
+		if ($component->getOnAfterMapToEntity()) {
+			$component->getOnAfterMapToEntity()($component, $entity);
 		}
 
 		return TRUE;

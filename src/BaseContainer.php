@@ -12,6 +12,11 @@ abstract class BaseContainer extends Nette\Forms\Container
 	// the control must not be an instance of "HiddenField"
 	// otherwise the error will be added to the form instead of the container
 	const ERROR_CONTROL_NAME = '_containerError_';
+	
+	/**
+	 * @var array
+	 */
+	private array $options = [];
 
 	/**
 	 * @var string
@@ -34,10 +39,40 @@ abstract class BaseContainer extends Nette\Forms\Container
 		return (bool) $this->getRequiredMessage();
 	}
 
+	/**
+	 * @param $key
+	 * @param $value
+	 * @return $this
+	 */
+	public function setOption($key, $value)
+	{
+		if ($value === null) {
+			unset($this->options[$key]);
+		} else {
+			$this->options[$key] = $value;
+		}
+		return $this;
+	}
+
+	/**
+	 * @param $key
+	 * @param null $default
+	 * @return mixed|null
+	 */
+	public function getOption($key, $default = null)
+	{
+		return $this->options[$key] ?? $default;
+	}
+
+	public function getOptions(): array
+	{
+		return $this->options;
+	}
+
 	public static function register()
 	{
 		Nette\Forms\Container::extensionMethod('toOne', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory = null, ?string $isFilledComponentName = null, ?string $isRequiredMessage = null) {
-			return $_this[$name] = (new ToOneContainerFactory($name, $containerFactory, $entityFactory, $isFilledComponentName, $isRequiredMessage))
+			return $_this[$name] = (new ToOneContainerFactory($name, $containerFactory, $entityFactory, $isFilledComponentName))
 				->create()
 				->setRequired($isRequiredMessage);
 		});

@@ -5,6 +5,7 @@ namespace ADT\DoctrineForms;
 use Nette;
 use Nette\Application\UI;
 use Nette\Application\UI\Presenter;
+use Closure;
 
 class ToManyContainer extends BaseContainer
 {
@@ -16,29 +17,38 @@ class ToManyContainer extends BaseContainer
 	private ToOneContainerFactory $toOneContainerFactory;
 
 	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $onAfterMapToForm = null;
+
+	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $onAfterMapToEntity = null;
+
+	/**
 	 * ToManyContainer constructor.
 	 */
 	public function __construct()
 	{
 		$this->monitor(Presenter::class, function() {
-			$this->onAttach();
-		});
-	}
+			/** @var UI\Form|EntityForm $form */
+			$form = $this->getForm();
 
-	protected function onAttach(): void
-	{
-		/** @var UI\Form|EntityForm $form */
-		$form = $this->getForm();
+			if (!$form->isSubmitted()) {
+				if (!$form->getEntity()) {
+					$this->createOne();
+				}
 
-		if (!$form->isSubmitted()) {
-			return;
-		}
-
-		if ($this->getHttpData()) {
-			foreach (array_keys($this->getHttpData()) as $id) {
-				$this->getComponent($id); // eager initialize
+				return;
 			}
-		}
+
+			if ($this->getHttpData()) {
+				foreach (array_keys($this->getHttpData()) as $id) {
+					$this->getComponent($id); // eager initialize
+				}
+			}
+		});
 	}
 
 	/**
@@ -65,6 +75,10 @@ class ToManyContainer extends BaseContainer
 		return $this[$name] = $container = $this->toOneContainerFactory->create();
 	}
 
+	/**
+	 * @param $toOneContainerFactory
+	 * @return $this
+	 */
 	public function setToOneContainerFactory($toOneContainerFactory)
 	{
 		$this->toOneContainerFactory = $toOneContainerFactory;
@@ -75,7 +89,7 @@ class ToManyContainer extends BaseContainer
 	 * @param null $name
 	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl
 	 */
-	public function createOne($name = NULL)
+	protected function createOne($name = NULL)
 	{
 		if ($name === NULL) {
 			$names = array_map(function($key) {
@@ -85,6 +99,42 @@ class ToManyContainer extends BaseContainer
 		}
 
 		return $this[ToManyContainer::NEW_PREFIX . $name];
+	}
+
+	/**
+	 * @return Closure
+	 */
+	public function getOnAfterMapToForm()
+	{
+		return $this->onAfterMapToForm;
+	}
+
+	/**
+	 * @param \Closure $onAfterMapToForm
+	 * @return $this
+	 */
+	public function setOnAfterMapToForm(\Closure $onAfterMapToForm)
+	{
+		$this->onAfterMapToForm = $onAfterMapToForm;
+		return $this;
+	}
+
+	/**
+	 * @return Closure|null
+	 */
+	public function getOnAfterMapToEntity()
+	{
+		return $this->onAfterMapToEntity;
+	}
+
+	/**
+	 * @param Closure $onAfterMapToForm
+	 * @return $this
+	 */
+	public function setOnAfterMapToEntity(\Closure $onAfterMapToEntity)
+	{
+		$this->onAfterMapToEntity = $onAfterMapToEntity;
+		return $this;
 	}
 
 	/**

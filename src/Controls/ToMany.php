@@ -1,134 +1,149 @@
 <?php
 
-namespace ADT\DoctrineForms\Controls;
+namespace ADT\DoctrineForms;
 
-use ADT\DoctrineForms\ToOneContainer;
-use Doctrine\Common\Collections\ArrayCollection;
-use ADT\DoctrineForms\EntityFormMapper;
-use ADT\DoctrineForms\IComponentMapper;
-use ADT\DoctrineForms\ToManyContainer;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Nette\ComponentModel\Component;
+use Nette;
+use Nette\Application\UI;
+use Nette\Application\UI\Presenter;
+use Closure;
 
-class ToMany implements IComponentMapper
+class ToManyContainer extends BaseContainer
 {
-	/**
-	 * @var EntityFormMapper
-	 */
-	private EntityFormMapper $mapper;
+	const NEW_PREFIX = '_new_';
 
 	/**
-	 * ToMany constructor.
-	 * @param EntityFormMapper $mapper
+	 * @var ToOneContainerFactory
 	 */
-	public function __construct(EntityFormMapper $mapper)
+	private ToOneContainerFactory $toOneContainerFactory;
+
+	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $onAfterMapToForm = null;
+
+	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $onAfterMapToEntity = null;
+
+	/**
+	 * ToManyContainer constructor.
+	 */
+	public function __construct()
 	{
-		$this->mapper = $mapper;
-	}
+		$this->monitor(Presenter::class, function() {
+			/** @var UI\Form|EntityForm $form */
+			$form = $this->getForm();
 
-	/**
-	 * @param ClassMetadata $meta
-	 * @param Component $component
-	 * @param $entity
-	 * @return bool
-	 */
-	public function load(ClassMetadata $meta, Component $component, $entity): bool
-	{
-		if (!$component instanceof ToManyContainer) {
-			return FALSE;
-		}
-
-		if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
-			return FALSE;
-		}
-
-		$em = $this->mapper->getEntityManager();
-		$UoW = $em->getUnitOfWork();
-
-		foreach ($collection as $key => $relation) {
-			if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
-				if ($UoW->getSingleIdentifierValue($relation)) {
-					$this->mapper->load($relation, $component[$key]);
-
-					// we have to fill isFilled component value
-					// if isFilled component is set
-					if ($component[$key]->getIsFilledComponent()) {
-						$component[$key]->getIsFilledComponent()->setDefaultValue(true);
-					}
-
-					continue;
+			if (!$form->isSubmitted()) {
+				if (!$form->getEntity()) {
+					$this->createOne();
 				}
 
-				$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
+				return;
 			}
-		}
 
-		return TRUE;
+			if ($this->getHttpData()) {
+				foreach (array_keys($this->getHttpData()) as $id) {
+					$this->getComponent($id); // eager initialize
+				}
+			}
+		});
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param Component $component
-	 * @param $entity
-	 * @return bool
+	 * @param array|null $controls
 	 */
-	public function save(ClassMetadata $meta, Component $component, $entity): bool
+	public function validate(?array $controls = NULL): void
 	{
-		if (!$component instanceof ToManyContainer) {
-			return FALSE;
+		if (
+			$this->isRequired()
+			&&
+			!iterator_count($this->getComponents())
+		) {
+			$this->addText(static::ERROR_CONTROL_NAME)
+				->addError($this->getRequiredMessage());
 		}
-
-		if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
-			return FALSE;
-		}
-
-		$em = $this->mapper->getEntityManager();
-		$class = $meta->getAssociationTargetClass($component->getName());
-		$relationMeta = $em->getClassMetadata($class);
-
-		$received = [];
-
-		/** @var ToOneContainer $container */
-		foreach ($component->getComponents(false) as $container) {
-			$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
-			$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
-
-			if ((!$relation = $collection->get($name))) { // entity was added from the client
-				$collection[$name] = $relation = $container->createEntity($relationMeta);
-			}
-
-			$received[] = $name;
-
-			$this->mapper->save($relation, $container);
-		}
-
-		foreach ($collection as $key => $relation) {
-			if (!in_array((string) $key, $received)) {
-				unset($collection[$key]);
-			}
-		}
-
-		return TRUE;
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param $entity
-	 * @param $field
-	 * @return bool|ArrayCollection|mixed
+	 * @param string $name
+	 * @return Nette\ComponentModel\IComponent|null
 	 */
-	private function getCollection(ClassMetadata $meta, $entity, $field)
+	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
-		if (!$meta->hasAssociation($field) || $meta->isSingleValuedAssociation($field)) {
-			return FALSE;
+		return $this[$name] = $container = $this->toOneContainerFactory->create();
+	}
+
+	/**
+	 * @param $toOneContainerFactory
+	 * @return $this
+	 */
+	public function setToOneContainerFactory($toOneContainerFactory)
+	{
+		$this->toOneContainerFactory = $toOneContainerFactory;
+		return $this;
+	}
+	
+	/**
+	 * @param null $name
+	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl
+	 */
+	protected function createOne($name = NULL)
+	{
+		if ($name === NULL) {
+			$names = array_map(function($key) {
+				return substr($key, strlen(ToManyContainer::NEW_PREFIX)); // TODO statickou funkci
+			}, array_keys(iterator_to_array($this->getComponents())));
+			$name = $names ? max($names) + 1 : 0;
 		}
 
-		$collection = $meta->getFieldValue($entity, $field);
-		if ($collection === NULL) {
-			$collection = new ArrayCollection();
-			$meta->setFieldValue($entity, $field, $collection);
-		}
+		return $this[ToManyContainer::NEW_PREFIX . $name];
+	}
 
-		return $collection;
+	/**
+	 * @return Closure
+	 */
+	public function getOnAfterMapToForm()
+	{
+		return $this->onAfterMapToForm;
+	}
+
+	/**
+	 * @param \Closure $onAfterMapToForm
+	 * @return $this
+	 */
+	public function setOnAfterMapToForm(\Closure $onAfterMapToForm)
+	{
+		$this->onAfterMapToForm = $onAfterMapToForm;
+		return $this;
+	}
+
+	/**
+	 * @return Closure|null
+	 */
+	public function getOnAfterMapToEntity()
+	{
+		return $this->onAfterMapToEntity;
+	}
+
+	/**
+	 * @param Closure $onAfterMapToForm
+	 * @return $this
+	 */
+	public function setOnAfterMapToEntity(\Closure $onAfterMapToEntity)
+	{
+		$this->onAfterMapToEntity = $onAfterMapToEntity;
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getHttpData()
+	{
+		$path = explode(self::NAME_SEPARATOR, $this->lookupPath('Nette\Application\UI\Form'));
+		$allData = $this->getForm()->getHttpData();
+		return Nette\Utils\Arrays::get($allData, $path, NULL);
 	}
 }

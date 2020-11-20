@@ -84,6 +84,11 @@ class ToOneContainer extends BaseContainer
 		if ($excludeIsFilledComponent) {
 			unset($values[$this->getIsFilledComponent()->getName()]);
 		}
+		foreach ($values as &$_value) {
+			if ($_value instanceof Nette\Http\FileUpload && !$_value->isOk()) {
+				$_value = null;
+			}
+		}
 
 		return !array_filter($values);
 	}

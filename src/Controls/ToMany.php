@@ -63,8 +63,12 @@ class ToMany implements IComponentMapper
 			}
 		}
 
-		if ($component->getOnAfterMapToForm()) {
-			$component->getOnAfterMapToForm()($component, $entity);
+		if (!$component->getForm()->isSubmitted()) {
+			$component->createOne();
+			
+			if ($component->getOnAfterMapToForm()) {
+				$component->getOnAfterMapToForm()($component, $entity);
+			}
 		}
 
 		return TRUE;
@@ -91,6 +95,8 @@ class ToMany implements IComponentMapper
 		$relationMeta = $em->getClassMetadata($class);
 
 		$received = [];
+
+		bd ($component->getComponents());
 
 		/** @var ToOneContainer $container */
 		foreach ($component->getComponents(false) as $container) {

@@ -36,10 +36,6 @@ class ToManyContainer extends BaseContainer
 			$form = $this->getForm();
 
 			if (!$form->isSubmitted()) {
-				if (!$form->getEntity()) {
-					$this->createOne();
-				}
-
 				return;
 			}
 
@@ -89,7 +85,7 @@ class ToManyContainer extends BaseContainer
 	 * @param null $name
 	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl
 	 */
-	protected function createOne($name = NULL)
+	public function createOne($name = NULL)
 	{
 		if ($name === NULL) {
 			$names = array_map(function($key) {

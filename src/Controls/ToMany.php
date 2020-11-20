@@ -96,8 +96,6 @@ class ToMany implements IComponentMapper
 
 		$received = [];
 
-		bd ($component->getComponents());
-
 		/** @var ToOneContainer $container */
 		foreach ($component->getComponents(false) as $container) {
 			$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;

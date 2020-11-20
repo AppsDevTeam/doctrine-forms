@@ -41,34 +41,35 @@ class ToMany implements IComponentMapper
 		if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
 			return FALSE;
 		}
+		
+		if ($component->getFormMapper()) {
+			$component->getFormMapper()($component, $entity);
+		}
+		else {
+			$em = $this->mapper->getEntityManager();
+			$UoW = $em->getUnitOfWork();
 
-		$em = $this->mapper->getEntityManager();
-		$UoW = $em->getUnitOfWork();
+			foreach ($collection as $key => $relation) {
+				if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
+					if ($UoW->getSingleIdentifierValue($relation)) {
+						$this->mapper->load($relation, $component[$key]);
 
-		foreach ($collection as $key => $relation) {
-			if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
-				if ($UoW->getSingleIdentifierValue($relation)) {
-					$this->mapper->load($relation, $component[$key]);
+						// we have to fill isFilled component value
+						// if isFilled component is set
+						if ($component[$key]->getIsFilledComponent()) {
+							$component[$key]->getIsFilledComponent()->setDefaultValue(true);
+						}
 
-					// we have to fill isFilled component value
-					// if isFilled component is set
-					if ($component[$key]->getIsFilledComponent()) {
-						$component[$key]->getIsFilledComponent()->setDefaultValue(true);
+						continue;
 					}
 
-					continue;
+					$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
 				}
-
-				$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
 			}
 		}
 
 		if (!$component->getForm()->isSubmitted()) {
 			$component->createOne();
-			
-			if ($component->getOnAfterMapToForm()) {
-				$component->getOnAfterMapToForm()($component, $entity);
-			}
 		}
 
 		return TRUE;
@@ -90,34 +91,35 @@ class ToMany implements IComponentMapper
 			return FALSE;
 		}
 
-		$em = $this->mapper->getEntityManager();
-		$class = $meta->getAssociationTargetClass($component->getName());
-		$relationMeta = $em->getClassMetadata($class);
+		if ($component->getEntityMapper()) {
+			$component->getEntityMapper()($component, $entity);
+		}
+		else {
+			$em = $this->mapper->getEntityManager();
+			$class = $meta->getAssociationTargetClass($component->getName());
+			$relationMeta = $em->getClassMetadata($class);
 
-		$received = [];
+			$received = [];
 
-		/** @var ToOneContainer $container */
-		foreach ($component->getComponents(false) as $container) {
-			$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
-			$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
+			/** @var ToOneContainer $container */
+			foreach ($component->getComponents(false) as $container) {
+				$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
+				$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
 
-			if ((!$relation = $collection->get($name))) { // entity was added from the client
-				$collection[$name] = $relation = $container->createEntity($relationMeta);
+				if ((!$relation = $collection->get($name))) { // entity was added from the client
+					$collection[$name] = $relation = $container->createEntity($relationMeta);
+				}
+
+				$received[] = $name;
+
+				$this->mapper->save($relation, $container);
 			}
 
-			$received[] = $name;
-
-			$this->mapper->save($relation, $container);
-		}
-
-		foreach ($collection as $key => $relation) {
-			if (!in_array((string) $key, $received)) {
-				unset($collection[$key]);
+			foreach ($collection as $key => $relation) {
+				if (!in_array((string) $key, $received)) {
+					unset($collection[$key]);
+				}
 			}
-		}
-
-		if ($component->getOnAfterMapToEntity()) {
-			$component->getOnAfterMapToEntity()($component, $entity);
 		}
 
 		return TRUE;

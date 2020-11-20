@@ -68,10 +68,6 @@ class ToMany implements IComponentMapper
 			}
 		}
 
-		if (!$component->getForm()->isSubmitted()) {
-			$component->createOne();
-		}
-
 		return TRUE;
 	}
 

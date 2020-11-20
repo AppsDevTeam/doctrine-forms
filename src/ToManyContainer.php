@@ -5,6 +5,7 @@ namespace ADT\DoctrineForms;
 use Nette;
 use Nette\Application\UI;
 use Nette\Application\UI\Presenter;
+use Closure;
 
 class ToManyContainer extends BaseContainer
 {
@@ -16,29 +17,34 @@ class ToManyContainer extends BaseContainer
 	private ToOneContainerFactory $toOneContainerFactory;
 
 	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $formMapper = null;
+
+	/**
+	 * @var Closure|null
+	 */
+	private ?Closure $entityMapper = null;
+
+	/**
 	 * ToManyContainer constructor.
 	 */
 	public function __construct()
 	{
 		$this->monitor(Presenter::class, function() {
-			$this->onAttach();
-		});
-	}
+			/** @var UI\Form|EntityForm $form */
+			$form = $this->getForm();
 
-	protected function onAttach(): void
-	{
-		/** @var UI\Form|EntityForm $form */
-		$form = $this->getForm();
-
-		if (!$form->isSubmitted()) {
-			return;
-		}
-
-		if ($this->getHttpData()) {
-			foreach (array_keys($this->getHttpData()) as $id) {
-				$this->getComponent($id); // eager initialize
+			if (!$form->isSubmitted()) {
+				return;
 			}
-		}
+
+			if ($this->getHttpData()) {
+				foreach (array_keys($this->getHttpData()) as $id) {
+					$this->getComponent($id); // eager initialize
+				}
+			}
+		});
 	}
 
 	/**
@@ -65,6 +71,10 @@ class ToManyContainer extends BaseContainer
 		return $this[$name] = $container = $this->toOneContainerFactory->create();
 	}
 
+	/**
+	 * @param $toOneContainerFactory
+	 * @return $this
+	 */
 	public function setToOneContainerFactory($toOneContainerFactory)
 	{
 		$this->toOneContainerFactory = $toOneContainerFactory;
@@ -85,6 +95,42 @@ class ToManyContainer extends BaseContainer
 		}
 
 		return $this[ToManyContainer::NEW_PREFIX . $name];
+	}
+
+	/**
+	 * @return Closure
+	 */
+	public function getFormMapper()
+	{
+		return $this->formMapper;
+	}
+
+	/**
+	 * @param \Closure $onAfterMapToForm
+	 * @return $this
+	 */
+	public function setFormMapper(\Closure $formMapper)
+	{
+		$this->formMapper = $formMapper;
+		return $this;
+	}
+
+	/**
+	 * @return Closure|null
+	 */
+	public function getEntityMapper()
+	{
+		return $this->entityMapper;
+	}
+
+	/**
+	 * @param Closure $entityMapper
+	 * @return $this
+	 */
+	public function setEntityMapper(\Closure $entityMapper)
+	{
+		$this->entityMapper = $entityMapper;
+		return $this;
 	}
 
 	/**

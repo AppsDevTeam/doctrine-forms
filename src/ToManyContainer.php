@@ -19,12 +19,12 @@ class ToManyContainer extends BaseContainer
 	/**
 	 * @var Closure|null
 	 */
-	private ?Closure $onAfterMapToForm = null;
+	private ?Closure $formMapper = null;
 
 	/**
 	 * @var Closure|null
 	 */
-	private ?Closure $onAfterMapToEntity = null;
+	private ?Closure $entityMapper = null;
 
 	/**
 	 * ToManyContainer constructor.
@@ -100,36 +100,36 @@ class ToManyContainer extends BaseContainer
 	/**
 	 * @return Closure
 	 */
-	public function getOnAfterMapToForm()
+	public function getFormMapper()
 	{
-		return $this->onAfterMapToForm;
+		return $this->formMapper;
 	}
 
 	/**
 	 * @param \Closure $onAfterMapToForm
 	 * @return $this
 	 */
-	public function setOnAfterMapToForm(\Closure $onAfterMapToForm)
+	public function setFormMapper(\Closure $formMapper)
 	{
-		$this->onAfterMapToForm = $onAfterMapToForm;
+		$this->formMapper = $formMapper;
 		return $this;
 	}
 
 	/**
 	 * @return Closure|null
 	 */
-	public function getOnAfterMapToEntity()
+	public function getEntityMapper()
 	{
-		return $this->onAfterMapToEntity;
+		return $this->entityMapper;
 	}
 
 	/**
-	 * @param Closure $onAfterMapToForm
+	 * @param Closure $entityMapper
 	 * @return $this
 	 */
-	public function setOnAfterMapToEntity(\Closure $onAfterMapToEntity)
+	public function setEntityMapper(\Closure $entityMapper)
 	{
-		$this->onAfterMapToEntity = $onAfterMapToEntity;
+		$this->entityMapper = $entityMapper;
 		return $this;
 	}
 

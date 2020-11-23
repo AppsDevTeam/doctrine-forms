@@ -32,6 +32,11 @@ class ToManyContainer extends BaseContainer
 	private bool $allowAdding = true;
 
 	/**
+	 * @var ToOneContainer|null 
+	 */
+	private ?ToOneContainer $template = null;
+
+	/**
 	 * ToManyContainer constructor.
 	 */
 	public function __construct()
@@ -73,7 +78,7 @@ class ToManyContainer extends BaseContainer
 	 */
 	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
-		return $this[$name] = $container = $this->toOneContainerFactory->create();
+		return $this->toOneContainerFactory->create();
 	}
 
 	/**
@@ -85,21 +90,21 @@ class ToManyContainer extends BaseContainer
 		$this->toOneContainerFactory = $toOneContainerFactory;
 		return $this;
 	}
-	
-	/**
-	 * @param null $name
-	 * @return Nette\ComponentModel\IComponent|Nette\Forms\Controls\BaseControl
-	 */
-	public function createOne($name = NULL)
-	{
-		if ($name === NULL) {
-			$names = array_map(function($key) {
-				return substr($key, strlen(ToManyContainer::NEW_PREFIX)); // TODO statickou funkci
-			}, array_keys(iterator_to_array($this->getComponents())));
-			$name = $names ? max($names) + 1 : 0;
-		}
 
-		return $this[ToManyContainer::NEW_PREFIX . $name];
+	public function createTemplate()
+	{
+		if (!$this->template) {
+			$this->template = $this->createComponent(static::NEW_PREFIX);
+		}
+		return $this->template;
+	}
+
+	/**
+	 * @return ToOneContainer|null
+	 */
+	public function getTemplate()
+	{
+		return $this->template;
 	}
 
 	/**

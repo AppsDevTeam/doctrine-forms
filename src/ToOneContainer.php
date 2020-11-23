@@ -13,12 +13,12 @@ class ToOneContainer extends BaseContainer
 	/**
 	 * @var Closure|null
 	 */
-	protected ?Closure $entityFactory;
+	private ?Closure $entityFactory;
 
 	/**
 	 * @var Nette\Forms\Controls\BaseControl
 	 */
-	protected ?Nette\Forms\Controls\BaseControl $isFilledComponent = null;
+	private ?Nette\Forms\Controls\BaseControl $isFilledComponent = null;
 
 	/**
 	 * ToOneContainer constructor.

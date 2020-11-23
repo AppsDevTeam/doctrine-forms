@@ -103,6 +103,12 @@ class ToMany implements IComponentMapper
 				$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
 
 				if ((!$relation = $collection->get($name))) { // entity was added from the client
+					// we don't want to create an entity
+					// if the entire container is empty
+					if ($container->isEmpty()) {
+						continue;
+					}
+					
 					$collection[$name] = $relation = $container->createEntity($relationMeta);
 				}
 

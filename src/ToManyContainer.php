@@ -27,6 +27,11 @@ class ToManyContainer extends BaseContainer
 	private ?Closure $entityMapper = null;
 
 	/**
+	 * @var bool
+	 */
+	private bool $allowAdding = true;
+
+	/**
 	 * ToManyContainer constructor.
 	 */
 	public function __construct()
@@ -130,6 +135,24 @@ class ToManyContainer extends BaseContainer
 	public function setEntityMapper(\Closure $entityMapper)
 	{
 		$this->entityMapper = $entityMapper;
+		return $this;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isAllowAdding()
+	{
+		return $this->allowAdding;
+	}
+
+	/**
+	 * @param bool $allowAdding
+	 * @return $this
+	 */
+	public function setAllowAdding(bool $allowAdding)
+	{
+		$this->allowAdding = $allowAdding;
 		return $this;
 	}
 

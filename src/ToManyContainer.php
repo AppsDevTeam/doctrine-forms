@@ -94,7 +94,7 @@ class ToManyContainer extends BaseContainer
 	public function createTemplate()
 	{
 		if (!$this->template) {
-			$this->template = $this->createComponent(ToManyContainer::NEW_PREFIX);
+			$this->template = $this->createComponent(static::NEW_PREFIX);
 		}
 		return $this->template;
 	}

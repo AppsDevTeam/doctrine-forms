@@ -165,17 +165,4 @@ class ToManyContainer extends BaseContainer
 		$allData = $this->getForm()->getHttpData();
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
 	}
-
-	/**
-	 * @param bool $deep
-	 * @param string|null $filterType
-	 * @return \Iterator
-	 */
-	final public function getContainers(): \Iterator
-	{
-		$template = $this->getTemplate();
-		return new \CallbackFilterIterator(parent::getComponents(false, ToOneContainer::class), function ($item) use ($template) {
-			return $item !== $template;
-		});
-	}
 }

@@ -78,7 +78,7 @@ class ToManyContainer extends BaseContainer
 	 */
 	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
-		return $this->toOneContainerFactory->create();
+		return $this[$name] = $this->toOneContainerFactory->create();
 	}
 
 	/**
@@ -91,19 +91,14 @@ class ToManyContainer extends BaseContainer
 		return $this;
 	}
 
-	public function createTemplate()
-	{
-		if (!$this->template) {
-			$this->template = $this->createComponent(static::NEW_PREFIX);
-		}
-		return $this->template;
-	}
-
 	/**
-	 * @return ToOneContainer|null
+	 * @return ToOneContainer
 	 */
 	public function getTemplate()
 	{
+		if (!$this->template) {
+			$this->template = $this[static::NEW_PREFIX];
+		}
 		return $this->template;
 	}
 

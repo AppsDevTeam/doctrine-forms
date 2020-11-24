@@ -78,7 +78,7 @@ class ToManyContainer extends BaseContainer
 	 */
 	protected function createComponent($name): ?Nette\ComponentModel\IComponent
 	{
-		return $this->toOneContainerFactory->create();
+		return $this[$name] = $this->toOneContainerFactory->create();
 	}
 
 	/**
@@ -91,19 +91,14 @@ class ToManyContainer extends BaseContainer
 		return $this;
 	}
 
-	public function createTemplate()
-	{
-		if (!$this->template) {
-			$this->template = $this->createComponent(static::NEW_PREFIX);
-		}
-		return $this->template;
-	}
-
 	/**
-	 * @return ToOneContainer|null
+	 * @return ToOneContainer
 	 */
 	public function getTemplate()
 	{
+		if (!$this->template) {
+			$this->template = $this[static::NEW_PREFIX];
+		}
 		return $this->template;
 	}
 
@@ -169,5 +164,18 @@ class ToManyContainer extends BaseContainer
 		$path = explode(self::NAME_SEPARATOR, $this->lookupPath('Nette\Application\UI\Form'));
 		$allData = $this->getForm()->getHttpData();
 		return Nette\Utils\Arrays::get($allData, $path, NULL);
+	}
+
+	/**
+	 * @param bool $deep
+	 * @param string|null $filterType
+	 * @return \Iterator
+	 */
+	final public function getContainers(): \Iterator
+	{
+		$template = $this->getTemplate();
+		return new \CallbackFilterIterator(parent::getComponents(false, ToOneContainer::class), function ($item) use ($template) {
+			return $item !== $template;
+		});
 	}
 }

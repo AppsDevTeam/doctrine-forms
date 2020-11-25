@@ -60,12 +60,9 @@ class TextControl implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
-			try {
-				$gettedValue = $this->accessor->getValue($entity, $name);
-			} catch (UninitializedPropertyException $e) {
-				$gettedValue = NULL;
-			}
-
+			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
+			$reflectionProperty->setAccessible(true);
+			$gettedValue = $reflectionProperty->getValue($entity);
 			$component->$valueSetter($gettedValue);
 			return TRUE;
 		}
@@ -75,7 +72,7 @@ class TextControl implements IComponentMapper
 		}
 
 		$this->setItems($component, $entity, $name);
-
+		
 		/** @var MultiChoiceControl $component */
 		if ($component instanceof MultiChoiceControl) {
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {

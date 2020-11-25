@@ -2,8 +2,10 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineForms\Controls\ToMany;
 use Closure;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Exception;
 use Nette;
 use Nette\Application\UI\Presenter;
@@ -102,10 +104,16 @@ class ToOneContainer extends BaseContainer
 	 * @param ClassMetadata $relationMeta
 	 * @return mixed|object
 	 */
-	public function createEntity(ClassMetadata $relationMeta)
+	public function createEntity(ClassMetadata $meta, string $name, $entity)
 	{
 		if (! $this->entityFactory) {
-			return $relationMeta->newInstance();
+			/** @var \ADT\BaseForm\EntityForm $form */
+			$form = $this->getForm();
+			$relation = $form->getEntityMapper()->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($name))->newInstance();
+			if ($meta->getAssociationMapping($name)['type'] === ClassMetadataInfo::ONE_TO_MANY) {
+				$relation->{'set' . (new \ReflectionClass($entity))->getShortName()}($entity);
+			}
+			return $relation;
 		}
 
 		return call_user_func($this->entityFactory);

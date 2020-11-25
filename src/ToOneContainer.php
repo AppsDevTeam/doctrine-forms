@@ -21,6 +21,11 @@ class ToOneContainer extends BaseContainer
 	private ?Nette\Forms\Controls\BaseControl $isFilledComponent = null;
 
 	/**
+	 * @var bool 
+	 */
+	private bool $isTemplate = false;
+
+	/**
 	 * ToOneContainer constructor.
 	 * @param string $entityFieldName
 	 * @param Closure $containerFactory
@@ -104,5 +109,23 @@ class ToOneContainer extends BaseContainer
 		}
 
 		return call_user_func($this->entityFactory);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isTemplate(): bool
+	{
+		return $this->isTemplate;
+	}
+
+	/**
+	 * @param bool $isTemplate
+	 * @return $this
+	 */
+	public function setIsTemplate(bool $isTemplate): self
+	{
+		$this->isTemplate = $isTemplate;
+		return $this;
 	}
 }

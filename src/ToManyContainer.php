@@ -108,7 +108,7 @@ class ToManyContainer extends BaseContainer
 		$iterator = new \CallbackFilterIterator($this->getComponents(), function (ToOneContainer $item) {
 			return !$item->isTemplate();
 		});
-		return $this[iterator_count($iterator)];
+		return $this[ToManyContainer::NEW_PREFIX . iterator_count($iterator)];
 	}
 
 	/**

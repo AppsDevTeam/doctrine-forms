@@ -63,7 +63,7 @@ class ToMany implements IComponentMapper
 						continue;
 					}
 
-					$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
+					$this->mapper->load($relation, $component[$key]);
 				}
 			}
 		}
@@ -99,10 +99,8 @@ class ToMany implements IComponentMapper
 
 			/** @var ToOneContainer $container */
 			foreach ($component->getComponents(false) as $container) {
-				$isNew = substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX;
-				$name = $isNew ? substr($container->getName(), strlen(ToManyContainer::NEW_PREFIX)) : $container->getName();
-
-				if ((!$relation = $collection->get($name))) { // entity was added from the client
+				// entity was added from the client
+				if (substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX) {
 					// we don't want to create an entity
 					// if adding new ones is disabled
 					if (! $component->isAllowAdding()) {
@@ -115,10 +113,14 @@ class ToMany implements IComponentMapper
 						continue;
 					}
 					
-					$collection[$name] = $relation = $container->createEntity($meta, $component->getName(), $entity);
+					$collection[$container->getName()] = $relation = $container->createEntity($meta, $component->getName(), $entity);
+				}
+				// container does not have a _new_ prefix and it's not in the collection
+				elseif (!$relation = $collection->get($container->getName())) {
+					continue;
 				}
 
-				$received[] = $name;
+				$received[] = $container->getName();
 
 				$this->mapper->save($relation, $container);
 			}

@@ -101,8 +101,12 @@ class ToOneContainer extends BaseContainer
 	}
 
 	/**
-	 * @param ClassMetadata $relationMeta
+	 * @param ClassMetadata $meta
+	 * @param string $name
+	 * @param $entity
 	 * @return mixed|object
+	 * @throws \Doctrine\ORM\Mapping\MappingException
+	 * @throws \ReflectionException
 	 */
 	public function createEntity(ClassMetadata $meta, string $name, $entity)
 	{

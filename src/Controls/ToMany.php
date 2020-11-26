@@ -63,7 +63,7 @@ class ToMany implements IComponentMapper
 						continue;
 					}
 
-					$this->mapper->load($relation, $component[ToManyContainer::NEW_PREFIX . $key]);
+					$this->mapper->load($relation, $component[$key]);
 				}
 			}
 		}

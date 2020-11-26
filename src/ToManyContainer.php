@@ -102,15 +102,6 @@ class ToManyContainer extends BaseContainer
 		return $this->template;
 	}
 
-	public function createOne()
-	{
-		// containers without a template one
-		$iterator = new \CallbackFilterIterator($this->getComponents(), function (ToOneContainer $item) {
-			return !$item->isTemplate();
-		});
-		return $this[ToManyContainer::NEW_PREFIX . iterator_count($iterator)];
-	}
-
 	/**
 	 * @return Closure
 	 */

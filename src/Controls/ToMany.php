@@ -115,7 +115,7 @@ class ToMany implements IComponentMapper
 						continue;
 					}
 					
-					$collection[$name] = $relation = $container->createEntity($meta, $component->getName(), $entity, $meta);
+					$collection[$name] = $relation = $container->createEntity($meta, $component->getName(), $entity);
 				}
 
 				$received[] = $name;

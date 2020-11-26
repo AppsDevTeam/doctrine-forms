@@ -152,7 +152,7 @@ class ToOne implements IComponentMapper
 			$class = $meta->getAssociationTargetClass($field);
 			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
 
-			$relation = $component->createEntity($relationMeta);
+			$relation = $component->createEntity($meta, $component->getName(), $entity);
 			$meta->setFieldValue($entity, $field, $relation);
 		}
 

@@ -104,12 +104,18 @@ class ToMany implements IComponentMapper
 
 				if ((!$relation = $collection->get($name))) { // entity was added from the client
 					// we don't want to create an entity
+					// if adding new ones is disabled
+					if (! $component->isAllowAdding()) {
+						continue;
+					}
+
+					// we don't want to create an entity
 					// if the entire container is empty
 					if ($container->isEmpty()) {
 						continue;
 					}
 					
-					$collection[$name] = $relation = $container->createEntity($relationMeta);
+					$collection[$name] = $relation = $container->createEntity($meta, $component->getName(), $entity);
 				}
 
 				$received[] = $name;

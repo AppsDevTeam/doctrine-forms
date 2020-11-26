@@ -2,7 +2,6 @@
 
 namespace ADT\DoctrineForms;
 
-use ADT\DoctrineForms\Controls\ToMany;
 use Closure;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;

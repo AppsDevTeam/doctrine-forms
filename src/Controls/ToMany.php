@@ -37,15 +37,15 @@ class ToMany implements IComponentMapper
 		if (!$component instanceof ToManyContainer) {
 			return FALSE;
 		}
-
-		if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
-			return FALSE;
-		}
 		
 		if ($component->getFormMapper()) {
-			$component->getFormMapper()($component, $entity);
+			$component->getFormMapper()->call($this, $meta, $component, $entity);
 		}
 		else {
+			if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
+				return FALSE;
+			}
+
 			$em = $this->mapper->getEntityManager();
 			$UoW = $em->getUnitOfWork();
 
@@ -83,14 +83,14 @@ class ToMany implements IComponentMapper
 			return FALSE;
 		}
 
-		if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
-			return FALSE;
-		}
-
 		if ($component->getEntityMapper()) {
-			$component->getEntityMapper()($component, $entity);
+			$component->getEntityMapper()->call($this, $meta, $component, $entity);
 		}
 		else {
+			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
+				return FALSE;
+			}
+
 			$em = $this->mapper->getEntityManager();
 			$class = $meta->getAssociationTargetClass($component->getName());
 			$relationMeta = $em->getClassMetadata($class);

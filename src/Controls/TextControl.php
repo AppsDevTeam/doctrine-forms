@@ -62,7 +62,7 @@ class TextControl implements IComponentMapper
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
-			$gettedValue = $reflectionProperty->getValue($entity);
+			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			$component->$valueSetter($gettedValue);
 			return TRUE;
 		}

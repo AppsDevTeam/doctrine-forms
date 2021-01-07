@@ -5,6 +5,7 @@ namespace ADT\DoctrineForms;
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
 use Nette;
 use Nette\Application\UI;
+use Nette\DI\Container;
 
 /**
  * @method ToManyContainer toMany($name, $containerFactory = NULL, $entityFactory = NULL)
@@ -19,15 +20,14 @@ use Nette\Application\UI;
  */
 trait EntityForm
 {
-	/**
-	 * @var EntityFormMapper
-	 */
+	/** @var EntityFormMapper */
 	private $entityMapper;
 
-	/**
-	 * @var object
-	 */
+	/** @var object */
 	private $entity;
+
+	/** @var Container */
+	private Container $dic;
 
 	/**
 	 * @param EntityFormMapper $mapper
@@ -45,7 +45,8 @@ trait EntityForm
 	public function getEntityMapper()
 	{
 		if ($this->entityMapper === NULL) {
-			$this->entityMapper = $this->getServiceLocator()->getByType('ADT\DoctrineForms\EntityFormMapper');
+			throw new \Exception('EntityFormMapper is not set!');
+			$this->entityMapper = $this->dic->getByType('ADT\DoctrineForms\EntityFormMapper');
 		}
 
 		return $this->entityMapper;
@@ -110,16 +111,10 @@ trait EntityForm
 		$this->onSubmit($this);
 	}
 
-	/**
-	 * @return Nette\DI\Container|\SystemContainer
-	 */
-	private function getServiceLocator()
+	public function setDic(Container $dic)
 	{
-		/** @var EntityForm|UI\Form $this */
-		/** @var UI\Presenter $presenter */
-		$presenter = $this->lookup('Nette\Application\UI\Presenter');
-
-		return $presenter->getContext();
+		$this->dic = $dic;
+		return $this;
 	}
 
 	public function mapToForm()

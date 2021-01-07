@@ -45,7 +45,6 @@ trait EntityForm
 	public function getEntityMapper()
 	{
 		if ($this->entityMapper === NULL) {
-			throw new \Exception('EntityFormMapper is not set!');
 			$this->entityMapper = $this->dic->getByType('ADT\DoctrineForms\EntityFormMapper');
 		}
 

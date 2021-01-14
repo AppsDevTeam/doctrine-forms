@@ -94,7 +94,7 @@ trait EntityForm
 			}
 		}
 
-		if ($this->onSuccess) {
+		if ($this->onSuccess && $this->isSubmitted()->getValidationScope() === null) {
 			foreach ($this->onSuccess as $handler) {
 				if (!$this->isValid()) {
 					$this->onError($this);

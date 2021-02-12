@@ -29,6 +29,14 @@ trait EntityForm
 	/** @var Container */
 	private Container $dic;
 
+	/** @var callable[] */
+	public $onAfterMapToEntity = [];
+
+	public function setOnAfterMapToEntity(callable $onAfterMapToEntity)
+	{
+		$this->onAfterMapToEntity[] = $onAfterMapToEntity;
+	}
+
 	/**
 	 * @param EntityFormMapper $mapper
 	 * @return EntityForm|UI\Form|
@@ -84,6 +92,7 @@ trait EntityForm
 
 		if ($this->isValid() && $this->entity) {
 			$this->mapToEntity();
+			$this->onAfterMapToEntity($this->entity, $this->getValues());
 		}
 
 		if ($submittedBy instanceof Nette\Forms\ISubmitterControl) {

@@ -69,6 +69,12 @@ abstract class BaseContainer extends Nette\Forms\Container
 		return $this->options;
 	}
 
+	public function addError($message, bool $translate = true): void
+	{
+		$this->addText(static::ERROR_CONTROL_NAME)
+			->addError($message, $translate);
+	}
+
 	public static function register()
 	{
 		Nette\Forms\Container::extensionMethod('toOne', function (Nette\Forms\Container $_this, string $name, Closure $containerFactory, ?Closure $entityFactory = null, ?string $isFilledComponentName = null, ?string $isRequiredMessage = null) {

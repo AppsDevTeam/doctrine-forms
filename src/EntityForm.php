@@ -27,7 +27,7 @@ trait EntityForm
 	private $entity;
 
 	/** @var Container */
-	private Container $dic;
+	protected Container $dic;
 
 	/** @var callable[] */
 	public $onAfterMapToEntity = [];

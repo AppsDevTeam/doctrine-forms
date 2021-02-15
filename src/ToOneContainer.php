@@ -57,8 +57,7 @@ class ToOneContainer extends BaseContainer
 			&&
 			$this->isEmpty()
 		) {
-			$this->addText(static::ERROR_CONTROL_NAME)
-				->addError($this->getRequiredMessage());
+			$this->addError($this->getRequiredMessage());
 		}
 	}
 

@@ -67,8 +67,7 @@ class ToManyContainer extends BaseContainer
 			&&
 			!iterator_count($this->getComponents())
 		) {
-			$this->addText(static::ERROR_CONTROL_NAME)
-				->addError($this->getRequiredMessage());
+			$this->addError($this->getRequiredMessage());
 		}
 	}
 

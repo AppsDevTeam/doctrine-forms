@@ -112,7 +112,6 @@ class ToOneContainer extends BaseContainer
 	{
 		if (! $this->entityFactory) {
 			/** @var \ADT\BaseForm\EntityForm $form */
-
 			$form = $this->getForm();
 			$relation = $form->getEntityMapper()->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($name))->newInstance();
 			if ($meta->getAssociationMapping($name)['type'] === ClassMetadataInfo::ONE_TO_MANY) {

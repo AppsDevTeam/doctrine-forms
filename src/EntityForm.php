@@ -90,11 +90,6 @@ trait EntityForm
 
 		$this->validate();
 
-		if ($this->isValid() && $this->entity) {
-			$this->mapToEntity();
-			$this->onAfterMapToEntity($this->entity, $this->getValues());
-		}
-
 		if ($submittedBy instanceof Nette\Forms\ISubmitterControl) {
 			if ($this->isValid()) {
 				$submittedBy->onClick($submittedBy);
@@ -104,6 +99,11 @@ trait EntityForm
 		}
 
 		if ($this->onSuccess && $this->isSubmitted()->getValidationScope() === null) {
+			if ($this->isValid() && $this->entity) {
+				$this->mapToEntity();
+				$this->onAfterMapToEntity($this->entity, $this->getValues());
+			}
+
 			foreach ($this->onSuccess as $handler) {
 				if (!$this->isValid()) {
 					$this->onError($this);

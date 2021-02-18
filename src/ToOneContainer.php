@@ -85,7 +85,9 @@ class ToOneContainer extends BaseContainer
 	 */
 	public function isEmpty($excludeIsFilledComponent = false)
 	{
-		$values = $this->getValues('array');
+		// we don't want to validate the controls, just check if they are empty or not
+		// getValues causes a loop
+		$values = $this->getUnsafeValues('array');
 		if ($excludeIsFilledComponent) {
 			unset($values[$this->getIsFilledComponent()->getName()]);
 		}
@@ -110,6 +112,7 @@ class ToOneContainer extends BaseContainer
 	{
 		if (! $this->entityFactory) {
 			/** @var \ADT\BaseForm\EntityForm $form */
+
 			$form = $this->getForm();
 			$relation = $form->getEntityMapper()->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($name))->newInstance();
 			if ($meta->getAssociationMapping($name)['type'] === ClassMetadataInfo::ONE_TO_MANY) {

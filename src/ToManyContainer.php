@@ -101,6 +101,28 @@ class ToManyContainer extends BaseContainer
 		return $this->template;
 	}
 
+	public function createNew(): ToOneContainer
+	{
+		return $this[static::NEW_PREFIX . iterator_count($this->getContainers())];
+	}
+
+	/**
+	 * Fill-in with values.
+	 * @param  array|object  $data
+	 * @return static
+	 * @internal
+	 */
+	public function setValues($values, bool $erase = FALSE)
+	{
+		foreach ($values as $name => $value) {
+			if ((is_array($value) || $value instanceof Traversable) && !$this->getComponent($name, FALSE)) {
+				$this->createComponent($name);
+			}
+		}
+
+		return parent::setValues($values, $erase);
+	}
+
 	/**
 	 * @return Closure
 	 */

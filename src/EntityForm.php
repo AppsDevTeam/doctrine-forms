@@ -3,37 +3,42 @@
 namespace ADT\DoctrineForms;
 
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
+use Doctrine\ORM\EntityManager;
 use Nette;
 use Nette\Application\UI;
 use Nette\DI\Container;
 
 trait EntityForm
 {
-	/** @var EntityFormMapper */
-	private $entityMapper;
+	private EntityManager $entityManager;
+	private ?EntityFormMapper $entityMapper = null;
+	private object $entity;
+	
+	public function getEntityManager()
+	{
+		return $this->entityManager;
+	}
 
-	/** @var object */
-	private $entity;
-
-	/** @var Container */
-	protected Container $dic;
-
-	/**
-	 * @return \ADT\DoctrineForms\EntityFormMapper
-	 */
-	public function getEntityMapper()
+	public function getEntityMapper(): EntityFormMapper
 	{
 		if ($this->entityMapper === NULL) {
-			$this->entityMapper = $this->dic->getByType('ADT\DoctrineForms\EntityFormMapper');
+			if (!$this->getEntityManager()) {
+				throw new \Exception('Set entity manager first via setEntityManager() method.');
+			}
+
+			$this->entityMapper = new EntityFormMapper($this->getEntityManager());
 		}
 
 		return $this->entityMapper;
 	}
 
-	/**
-	 * @return object
-	 */
-	public function setEntity($entity)
+	public function setEntityManager(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		return $this;
+	}
+
+	public function setEntity($entity): self
 	{
 		if (!is_object($entity)) {
 			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
@@ -43,18 +48,9 @@ trait EntityForm
 		return $this;
 	}
 
-	/**
-	 * @return object
-	 */
-	public function getEntity()
+	public function getEntity(): object
 	{
 		return $this->entity;
-	}
-
-	public function setDic(Container $dic)
-	{
-		$this->dic = $dic;
-		return $this;
 	}
 
 	public function mapToForm()

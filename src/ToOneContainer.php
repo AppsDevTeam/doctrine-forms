@@ -38,7 +38,7 @@ class ToOneContainer extends BaseContainer
 		$this->entityFactory = $entityFactory;
 
 		$this->monitor(Presenter::class, function() use ($entityFieldName, $containerFactory, $isFilledComponentName) {
-			$containerFactory->call($this->getForm(), $this);
+			$containerFactory($this);
 
 			if ($isFilledComponentName) {
 				$this->setIsFilledComponent($this->addText($isFilledComponentName)->setHtmlAttribute('style', 'display: none'));

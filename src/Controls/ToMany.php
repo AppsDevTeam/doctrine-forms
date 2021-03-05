@@ -2,12 +2,13 @@
 
 namespace ADT\DoctrineForms\Controls;
 
-use ADT\DoctrineForms\ToOneContainer;
+use ADT\Forms\DynamicContainer;
+use ADT\Forms\StaticContainer;
 use Doctrine\Common\Collections\ArrayCollection;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
-use ADT\DoctrineForms\ToManyContainer;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Nette\ComponentModel\Component;
 
 class ToMany implements IComponentMapper
@@ -34,12 +35,12 @@ class ToMany implements IComponentMapper
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof ToManyContainer) {
+		if (!$component instanceof DynamicContainer) {
 			return FALSE;
 		}
 		
-		if ($component->getFormMapper()) {
-			$component->getFormMapper()->call($this, $meta, $component, $entity);
+		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
+			$callback($meta, $component, $entity);
 		}
 		else {
 			if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
@@ -79,12 +80,12 @@ class ToMany implements IComponentMapper
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof ToManyContainer) {
+		if (!$component instanceof DynamicContainer) {
 			return FALSE;
 		}
 
-		if ($component->getEntityMapper()) {
-			$component->getEntityMapper()->call($this, $meta, $component, $entity);
+		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
+			$callback($meta, $component, $entity);
 		}
 		else {
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
@@ -97,10 +98,10 @@ class ToMany implements IComponentMapper
 
 			$received = [];
 
-			/** @var ToOneContainer $container */
+			/** @var StaticContainer $container */
 			foreach ($component->getComponents(false) as $container) {
 				// entity was added from the client
-				if (substr($container->getName(), 0, strlen(ToManyContainer::NEW_PREFIX)) === ToManyContainer::NEW_PREFIX) {
+				if (substr($container->getName(), 0, strlen(DynamicContainer::NEW_PREFIX)) === DynamicContainer::NEW_PREFIX) {
 					// we don't want to create an entity
 					// if adding new ones is disabled
 					if (! $component->isAllowAdding()) {
@@ -113,7 +114,7 @@ class ToMany implements IComponentMapper
 						continue;
 					}
 					
-					$collection[$container->getName()] = $relation = $container->createEntity($meta, $component->getName(), $entity);
+					$collection[$container->getName()] = $relation = $this->createEntity($meta, $component, $entity);
 				}
 				// container does not have a _new_ prefix and it's not in the collection
 				elseif (!$relation = $collection->get($container->getName())) {
@@ -154,5 +155,18 @@ class ToMany implements IComponentMapper
 		}
 
 		return $collection;
+	}
+
+	public function createEntity(ClassMetadata $meta, Component $component, $entity)
+	{
+		if (!$callback = $this->mapper->getForm()->getComponentEntityFactory($component)) {
+			$relation = $this->mapper->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($component->getName()))->newInstance();
+			if ($meta->getAssociationMapping($component->getName())['type'] === ClassMetadataInfo::ONE_TO_MANY) {
+				$relation->{'set' . (new \ReflectionClass($entity))->getShortName()}($entity);
+			}
+			return $relation;
+		}
+
+		return $callback();
 	}
 }

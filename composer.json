@@ -6,8 +6,6 @@
 	"license": ["MIT"],
 	"require": {
 		"php": ">=7.4",
-		"nette/di": "^3.0",
-		"nette/forms": "^3.0",
 		"doctrine/orm": "^2.4",
 		"symfony/property-access": "~3.3 || ^4.0 || ^5.0"
 	},

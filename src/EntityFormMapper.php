@@ -14,24 +14,20 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class EntityFormMapper
 {
-	/**
-	 * @var EntityManager
-	 */
 	private EntityManager $em;
 
 	/**
 	 * @var IComponentMapper[]
 	 */
 	private array $componentMappers;
-
-	/**
-	 * @var PropertyAccessor
-	 */
+	
 	private ?PropertyAccessor $accessor = null;
+	private EntityFormInterface $entityForm;
 
-	public function __construct(EntityManager $entityManager)
+	public function __construct(EntityManager $entityManager, EntityFormInterface $entityForm)
 	{
 		$this->em = $entityManager;
+		$this->entityForm = $entityForm;
 
 		$this->componentMappers = array(
 			new Controls\TextControl($this),
@@ -123,5 +119,10 @@ class EntityFormMapper
 		}
 
 		return $this->em->getClassMetadata(get_class($entity));
+	}
+	
+	public function getForm(): EntityFormInterface
+	{
+		return $this->entityForm;
 	}
 }

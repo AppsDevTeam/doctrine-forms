@@ -18,4 +18,6 @@ interface EntityFormInterface
 	public function setComponentFormMapper(IComponent $component, \Closure $formMapper): self;
 	public function getComponentEntityMapper(IComponent $component): ?\Closure;
 	public function setComponentEntityMapper(IComponent $component, \Closure $entityMapper): self;
+	public function getComponentEntityFactory(IComponent $component): ?\Closure;
+	public function setComponentEntityFactory(IComponent $component, \Closure $entityFactory): self;
 }

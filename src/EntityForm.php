@@ -4,8 +4,6 @@ namespace ADT\DoctrineForms;
 
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
-use Nette\Application\UI;
-use Nette\DI\Container;
 use \Nette\ComponentModel\IComponent;
 
 trait EntityForm

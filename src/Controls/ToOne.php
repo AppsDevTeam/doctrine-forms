@@ -12,6 +12,8 @@ use Nette\ComponentModel\Component;
 
 class ToOne implements IComponentMapper
 {
+	use CreateEntityTrait;
+
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -152,7 +154,7 @@ class ToOne implements IComponentMapper
 			$class = $meta->getAssociationTargetClass($field);
 			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
 
-			$relation = $component->createEntity($meta, $component->getName(), $entity);
+			$relation = $this->createEntity($meta, $component, $entity);
 			$meta->setFieldValue($entity, $field, $relation);
 		}
 

@@ -8,11 +8,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Nette\ComponentModel\Component;
 
 class ToMany implements IComponentMapper
 {
+	use CreateEntityTrait;
+	
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -155,18 +156,5 @@ class ToMany implements IComponentMapper
 		}
 
 		return $collection;
-	}
-
-	public function createEntity(ClassMetadata $meta, Component $component, $entity)
-	{
-		if (!$callback = $this->mapper->getForm()->getComponentEntityFactory($component)) {
-			$relation = $this->mapper->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($component->getName()))->newInstance();
-			if ($meta->getAssociationMapping($component->getName())['type'] === ClassMetadataInfo::ONE_TO_MANY) {
-				$relation->{'set' . (new \ReflectionClass($entity))->getShortName()}($entity);
-			}
-			return $relation;
-		}
-
-		return $callback();
 	}
 }

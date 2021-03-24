@@ -52,7 +52,8 @@ class ToMany implements IComponentMapper
 			$UoW = $em->getUnitOfWork();
 
 			foreach ($collection as $key => $relation) {
-				if (!$component->form->isSubmitted() || isset($component->values[$key])) {	// nemapuj, pokud byl řádek odstraněn uživatelem
+				// mapuj jen pri neodeslanem formulari nebo pokud nebyl radek odstranen uzivatelem
+				if (!$component->form->isSubmitted() || isset($component->getUnsafeValues('array')[$key])) {
 					if ($UoW->getSingleIdentifierValue($relation)) {
 						$this->mapper->load($relation, $component[$key]);
 
@@ -126,7 +127,7 @@ class ToMany implements IComponentMapper
 
 				$this->mapper->save($relation, $container);
 			}
-
+			
 			foreach ($collection as $key => $relation) {
 				if (!in_array((string) $key, $received)) {
 					unset($collection[$key]);

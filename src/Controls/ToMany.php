@@ -127,7 +127,7 @@ class ToMany implements IComponentMapper
 
 				$this->mapper->save($relation, $container);
 			}
-			
+
 			foreach ($collection as $key => $relation) {
 				if (!in_array((string) $key, $received)) {
 					unset($collection[$key]);

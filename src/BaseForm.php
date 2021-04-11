@@ -37,7 +37,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 
 		// we don't call setter intentionally to avoid logic in setter
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
-		
+
 		$this->setOnBeforeProcessForm(function($form) {
 			if ($this->entity) {
 				$this->getForm()->mapToEntity();
@@ -45,12 +45,12 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 				$this->onAfterMapToEntity($form);
 			}
 		});
-		
+
 		$this->paramResolvers[] = function($type) {;
 			if (is_subclass_of($type, Entity::class)) {
 				return $this->entity;
 			}
-			
+
 			return false;
 		};
 

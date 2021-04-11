@@ -5,7 +5,6 @@ namespace ADT\DoctrineForms\Controls;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
-use ADT;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;

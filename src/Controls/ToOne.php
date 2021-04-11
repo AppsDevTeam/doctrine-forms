@@ -2,7 +2,7 @@
 
 namespace ADT\DoctrineForms\Controls;
 
-use ADT\DoctrineForms\ToOneContainer;
+use ADT\Forms\StaticContainer;
 use Doctrine\Common\Collections\Collection;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
@@ -12,6 +12,8 @@ use Nette\ComponentModel\Component;
 
 class ToOne implements IComponentMapper
 {
+	use CreateEntityTrait;
+
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -27,7 +29,7 @@ class ToOne implements IComponentMapper
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof ToOneContainer) {
+		if (!$component instanceof StaticContainer) {
 			return FALSE;
 		}
 
@@ -59,7 +61,7 @@ class ToOne implements IComponentMapper
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		if (!$component instanceof ToOneContainer) {
+		if (!$component instanceof StaticContainer) {
 			return FALSE;
 		}
 
@@ -130,11 +132,11 @@ class ToOne implements IComponentMapper
 
 	/**
 	 * @param ClassMetadata $meta
-	 * @param ToOneContainer $component
+	 * @param StaticContainer $component
 	 * @param $entity
 	 * @return bool|mixed|object
 	 */
-	private function getRelation(ClassMetadata $meta, ToOneContainer $component, $entity)
+	private function getRelation(ClassMetadata $meta, StaticContainer $component, $entity)
 	{
 		$field = $component->getName();
 
@@ -152,7 +154,7 @@ class ToOne implements IComponentMapper
 			$class = $meta->getAssociationTargetClass($field);
 			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
 
-			$relation = $component->createEntity($meta, $component->getName(), $entity);
+			$relation = $this->createEntity($meta, $component, $entity);
 			$meta->setFieldValue($entity, $field, $relation);
 		}
 

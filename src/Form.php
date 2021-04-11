@@ -4,17 +4,17 @@ namespace ADT\DoctrineForms;
 
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
-use \Nette\ComponentModel\IComponent;
+use Nette\ComponentModel\IComponent;
 
-trait EntityForm
+class Form extends \ADT\Forms\Form
 {
-	private ?EntityManager $entityManager = null;
-	private ?EntityFormMapper $entityMapper = null;
-	private object $entity;
-	private array $componentFormMappers = [];
-	private array $componentEntityMappers = [];
-	private array $componentEntityFactories = [];
-	
+	protected ?EntityManager $entityManager = null;
+	protected ?EntityFormMapper $entityMapper = null;
+	protected object $entity;
+	protected array $componentFormMappers = [];
+	protected array $componentEntityMappers = [];
+	protected array $componentEntityFactories = [];
+
 	public function getEntityManager()
 	{
 		return $this->entityManager;
@@ -44,7 +44,7 @@ trait EntityForm
 		if (!is_object($entity)) {
 			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
 		}
-		
+
 		$this->entity = $entity;
 		return $this;
 	}

@@ -22,9 +22,9 @@ class EntityFormMapper
 	private array $componentMappers;
 	
 	private ?PropertyAccessor $accessor = null;
-	private EntityFormInterface $entityForm;
+	private Form $entityForm;
 
-	public function __construct(EntityManager $entityManager, EntityFormInterface $entityForm)
+	public function __construct(EntityManager $entityManager, Form $entityForm)
 	{
 		$this->em = $entityManager;
 		$this->entityForm = $entityForm;
@@ -121,7 +121,7 @@ class EntityFormMapper
 		return $this->em->getClassMetadata(get_class($entity));
 	}
 	
-	public function getForm(): EntityFormInterface
+	public function getForm(): Form
 	{
 		return $this->entityForm;
 	}

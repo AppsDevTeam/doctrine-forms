@@ -2,8 +2,6 @@
 
 namespace ADT\DoctrineForms;
 
-use ADT\Forms\Form;
-
 /**
  * @property-read Form $form
  * @method onAfterMapToForm($form)
@@ -39,14 +37,14 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
 		$this->setOnBeforeProcessForm(function($form) {
-			if ($this->entity) {
+			if ($this->getForm()->getEntity()) {
 				$this->getForm()->mapToEntity();
 
 				$this->onAfterMapToEntity($form);
 			}
 		});
 
-		$this->paramResolvers[] = function($type) {;
+		$this->paramResolvers[] = function($type) {
 			if (is_subclass_of($type, Entity::class)) {
 				return $this->entity;
 			}
@@ -82,6 +80,10 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	public function setEntity(Entity $entity): self
 	{
 		$this->entity = $entity;
+		if (isset($this->components['form'])) {
+			$this->getForm()->setEntity($entity);
+		}
+		
 		return $this;
 	}
 
@@ -103,7 +105,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	 */
 	public function initOnAfterMapToForm(Form $form)
 	{
-		if ($this->entity) {
+		if ($this->getForm()->getEntity()) {
 			$form->mapToForm();
 
 			$this->onAfterMapToForm($form);

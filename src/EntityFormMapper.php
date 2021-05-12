@@ -107,17 +107,8 @@ class EntityFormMapper
 		}
 	}
 
-	/**
-	 * @param object $entity
-	 * @return ClassMetadata
-	 * @throws InvalidArgumentException
-	 */
-	private function getMetadata($entity)
+	public function getMetadata(Entity $entity): ClassMetadata
 	{
-		if (!is_object($entity)) {
-			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
-		}
-
 		return $this->em->getClassMetadata(get_class($entity));
 	}
 	

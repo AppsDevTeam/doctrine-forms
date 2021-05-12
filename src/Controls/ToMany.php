@@ -41,7 +41,7 @@ class ToMany implements IComponentMapper
 		}
 		
 		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
-			$callback($meta, $component, $entity);
+			$callback($this->mapper, $component, $entity);
 		}
 		else {
 			if (!$collection = $this->getCollection($meta, $entity, $name = $component->getName())) {
@@ -87,7 +87,7 @@ class ToMany implements IComponentMapper
 		}
 
 		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
-			$callback($meta, $component, $entity);
+			$callback($this->mapper, $component, $entity);
 		}
 		else {
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {

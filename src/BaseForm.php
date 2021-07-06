@@ -47,6 +47,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->paramResolvers[] = function($type) {
 			if (is_subclass_of($type, Entity::class)) {
 				return $this->entity;
+			} elseif ($type === Entity::class) {
+				return $this->entity;
 			}
 
 			return false;

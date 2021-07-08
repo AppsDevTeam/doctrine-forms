@@ -9,7 +9,7 @@ namespace ADT\DoctrineForms;
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm
 {
-	protected $entity;
+	protected ?Entity $entity = null;
 
 	/**
 	 * @internal

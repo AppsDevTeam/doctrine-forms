@@ -49,6 +49,7 @@ class TextControl implements IComponentMapper
 	 * @param bool $force
 	 * @return bool
 	 * @throws MappingException
+	 * @throws \ReflectionException
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE): bool
 	{
@@ -87,11 +88,9 @@ class TextControl implements IComponentMapper
 			$component->$valueSetter($value);
 
 		} else {
-			try {
-				$relation = $this->accessor->getValue($entity, $name);
-			} catch (UninitializedPropertyException $e) {
-				$relation = NULL;
-			}
+			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
+			$reflectionProperty->setAccessible(true);
+			$relation = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 
 			if ($relation) {
 				$UoW = $this->em->getUnitOfWork();

@@ -91,6 +91,8 @@ class TextControl implements IComponentMapper
 				$relation = $this->accessor->getValue($entity, $name);
 			} catch (UninitializedPropertyException $e) {
 				$relation = NULL;
+			} catch (\TypeError $e) {
+				$relation = null;
 			}
 
 			if ($relation) {

@@ -151,10 +151,7 @@ class TextControl implements IComponentMapper
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
 			$value = $component->getValue();
-			if (is_object($value) && $value instanceof DateTimeImmutable) {
-				$value = new DateTime($value->format('Y-m-d H:i:s'));
-			}
-			elseif ($meta->isNullable($component->getName()) && $value === '') {
+			if ($meta->isNullable($component->getName()) && $value === '') {
 				$value = NULL;
 			}
 			$this->accessor->setValue($entity, $name, $value);

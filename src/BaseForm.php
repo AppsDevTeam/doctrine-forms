@@ -9,7 +9,7 @@ namespace ADT\DoctrineForms;
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm
 {
-	protected ?Entity $entity = null;
+	protected $entity;
 
 	/**
 	 * @internal
@@ -47,8 +47,6 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->paramResolvers[] = function($type) {
 			if (is_subclass_of($type, Entity::class)) {
 				return $this->entity;
-			} elseif ($type === Entity::class) {
-				return $this->entity;
 			}
 
 			return false;
@@ -79,11 +77,15 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return $this;
 	}
 
-	public function setEntity(Entity $entity): self
+	final public function setEntity(Entity $entity): self
 	{
 		$this->entity = $entity;
 		if (isset($this->components['form'])) {
 			$this->getForm()->setEntity($entity);
+		}
+		
+		if (method_exists($this, 'initEntity') && !$entity->getId()) {
+			call_user_func([$this, 'initEntity'], $entity);
 		}
 		
 		return $this;

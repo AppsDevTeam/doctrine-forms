@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
 use Exception;
@@ -30,10 +31,7 @@ class TextControl implements IComponentMapper
 	 */
 	private ?PropertyAccessor $accessor;
 
-	/**
-	 * @var EntityManager
-	 */
-	private EntityManager $em;
+	private EntityManagerInterface $em;
 
 	public function __construct(EntityFormMapper $mapper)
 	{

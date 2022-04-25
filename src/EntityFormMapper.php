@@ -3,7 +3,7 @@
 namespace ADT\DoctrineForms;
 
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Iterator;
 use Nette\ComponentModel\IComponent;
@@ -14,7 +14,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class EntityFormMapper
 {
-	private EntityManager $em;
+	private EntityManagerInterface $em;
 
 	/**
 	 * @var IComponentMapper[]
@@ -24,7 +24,7 @@ class EntityFormMapper
 	private ?PropertyAccessor $accessor = null;
 	private Form $entityForm;
 
-	public function __construct(EntityManager $entityManager, Form $entityForm)
+	public function __construct(EntityManagerInterface $entityManager, Form $entityForm)
 	{
 		$this->em = $entityManager;
 		$this->entityForm = $entityForm;
@@ -49,7 +49,7 @@ class EntityFormMapper
 	}
 
 	/**
-	 * @return EntityManager
+	 * @return EntityManagerInterface
 	 */
 	public function getEntityManager()
 	{

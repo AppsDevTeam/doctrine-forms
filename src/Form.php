@@ -3,12 +3,12 @@
 namespace ADT\DoctrineForms;
 
 use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Nette\ComponentModel\IComponent;
 
 class Form extends \ADT\Forms\Form
 {
-	protected ?EntityManager $entityManager = null;
+	protected ?EntityManagerInterface $entityManager = null;
 	protected ?EntityFormMapper $entityMapper = null;
 	protected ?Entity $entity = null;
 	protected array $componentFormMappers = [];
@@ -33,7 +33,7 @@ class Form extends \ADT\Forms\Form
 		return $this->entityMapper;
 	}
 
-	public function setEntityManager(EntityManager $entityManager): self
+	public function setEntityManager(EntityManagerInterface $entityManager): self
 	{
 		$this->entityManager = $entityManager;
 		return $this;

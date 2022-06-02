@@ -33,13 +33,13 @@ class Form extends \ADT\Forms\Form
 		return $this->entityMapper;
 	}
 
-	public function setEntityManager(EntityManagerInterface $entityManager): self
+	public function setEntityManager(EntityManagerInterface $entityManager): static
 	{
 		$this->entityManager = $entityManager;
 		return $this;
 	}
 
-	public function setEntity(object $entity): self
+	public function setEntity(object $entity): static
 	{
 		if (!is_object($entity)) {
 			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
@@ -73,7 +73,7 @@ class Form extends \ADT\Forms\Form
 		return $this->componentFormMappers[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentFormMapper(IComponent $component, \Closure $formMapper): self
+	public function setComponentFormMapper(IComponent $component, \Closure $formMapper): static
 	{
 		$this->componentFormMappers[spl_object_hash($component)] = $formMapper;
 		return $this;
@@ -84,7 +84,7 @@ class Form extends \ADT\Forms\Form
 		return $this->componentEntityMappers[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentEntityMapper(IComponent $component, \Closure $entityMapper): self
+	public function setComponentEntityMapper(IComponent $component, \Closure $entityMapper): static
 	{
 		$this->componentEntityMappers[spl_object_hash($component)] = $entityMapper;
 		return $this;
@@ -95,7 +95,7 @@ class Form extends \ADT\Forms\Form
 		return $this->componentEntityFactories[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentEntityFactory(IComponent $component, \Closure $entityFactory): self
+	public function setComponentEntityFactory(IComponent $component, \Closure $entityFactory): static
 	{
 		$this->componentEntityFactories[spl_object_hash($component)] = $entityFactory;
 		return $this;

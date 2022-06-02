@@ -59,7 +59,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 
 	// we need to call initOnAfterMapToForm last
 	// so we will remove initOnAfterMapToForm, add callbak and add initOnAfterMapToForm again
-	public function setOnAfterInitForm(callable $onAfterInitForm): self
+	public function setOnAfterInitForm(callable $onAfterInitForm): static
 	{
 		array_pop($this->onAfterInitForm);
 		$this->onAfterInitForm[] = $onAfterInitForm;
@@ -67,19 +67,19 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return $this;
 	}
 
-	public function setOnAfterMapToForm(callable $onAfterMapToForm): self
+	public function setOnAfterMapToForm(callable $onAfterMapToForm): static
 	{
 		$this->onAfterMapToForm[] = $onAfterMapToForm;
 		return $this;
 	}
 
-	public function setOnAfterMapToEntity(callable $onAfterMapToEntity): self
+	public function setOnAfterMapToEntity(callable $onAfterMapToEntity): static
 	{
 		$this->onAfterMapToEntity[] = $onAfterMapToEntity;
 		return $this;
 	}
 
-	final public function setEntity(Entity $entity): self
+	final public function setEntity(Entity $entity): static
 	{
 		$this->entity = $entity;
 		if (isset($this->components['form'])) {

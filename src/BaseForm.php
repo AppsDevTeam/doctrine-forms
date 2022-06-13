@@ -2,8 +2,10 @@
 
 namespace ADT\DoctrineForms;
 
+use Exception;
+
 /**
- * @property-read Form $form
+ * @property Form $form
  * @method onAfterMapToForm($form)
  * @method onAfterMapToEntity($form)
  */
@@ -15,13 +17,13 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	 * @internal
 	 * @var callable[]
 	 */
-	public $onAfterMapToForm = [];
+	public array $onAfterMapToForm = [];
 
 	/**
 	 * @internal
 	 * @var callable[]
 	 */
-	public $onAfterMapToEntity = [];
+	public array $onAfterMapToEntity = [];
 
 	public function __construct()
 	{
@@ -37,8 +39,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
 		$this->setOnBeforeProcessForm(function($form) {
-			if ($this->getForm()->getEntity()) {
-				$this->getForm()->mapToEntity();
+			if ($this->form->getEntity()) {
+				$this->form->mapToEntity();
 
 				$this->onAfterMapToEntity($form);
 			}
@@ -57,8 +59,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 
 	}
 
-	// we need to call initOnAfterMapToForm last
-	// so we will remove initOnAfterMapToForm, add callbak and add initOnAfterMapToForm again
+	// we need to call initOnAfterMapToForm last,
+	// so we will remove initOnAfterMapToForm, add callback and add initOnAfterMapToForm again
 	public function setOnAfterInitForm(callable $onAfterInitForm): self
 	{
 		array_pop($this->onAfterInitForm);
@@ -82,8 +84,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	final public function setEntity(Entity $entity): self
 	{
 		$this->entity = $entity;
-		if (isset($this->components['form'])) {
-			$this->getForm()->setEntity($entity);
+		if ($this->form) {
+			$this->form->setEntity($entity);
 		}
 
 		if (method_exists($this, 'initEntity') && !$entity->getId()) {
@@ -93,25 +95,18 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return $this;
 	}
 
-	protected function createComponentForm()
+	protected function createComponentForm(): Form
 	{
 		return new Form();
 	}
 
 	/**
-	 * @return Form
-	 */
-	public function getForm()
-	{
-		return $this['form'];
-	}
-
-	/**
+	 * @throws Exception
 	 * @internal
 	 */
 	public function initOnAfterMapToForm(Form $form)
 	{
-		if ($this->getForm()->getEntity()) {
+		if ($this->form->getEntity()) {
 			$form->mapToForm();
 
 			$this->onAfterMapToForm($form);

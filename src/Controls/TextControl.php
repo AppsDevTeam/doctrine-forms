@@ -209,11 +209,7 @@ class TextControl implements IComponentMapper
 			}
 
 		} else {
-			if ($identifier && ($relation = $repository->find($identifier))) {
-				$meta->setFieldValue($entity, $name, $relation);
-			} else {
-				$meta->setFieldValue($entity, $name, NULL);
-			}
+			$this->accessor->setValue($entity, $name, $identifier ? $repository->find($identifier) : null);
 		}
 
 		return TRUE;

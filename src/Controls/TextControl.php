@@ -56,6 +56,11 @@ class TextControl implements IComponentMapper
 		if (!$component instanceof BaseControl) {
 			return FALSE;
 		}
+		
+		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
+			$callback($this->mapper, $component, $entity);
+			return true;
+		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
@@ -145,6 +150,10 @@ class TextControl implements IComponentMapper
 	{
 		if (!$component instanceof BaseControl) {
 			return FALSE;
+		}
+
+		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
+			$callback($this->mapper, $component, $entity);
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {

@@ -30,11 +30,16 @@ class ToOne implements IComponentMapper
 	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof StaticContainer) {
-			return FALSE;
+			return false;
+		}
+
+		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
+			$callback($this->mapper, $component, $entity);
+			return true;
 		}
 
 		if (!$relation = $this->getRelation($meta, $component, $entity)) {
-			return FALSE;
+			return false;
 		}
 
 		// we have to fill isFilled component value
@@ -49,7 +54,7 @@ class ToOne implements IComponentMapper
 
 		$this->mapper->load($relation, $component);
 
-		return TRUE;
+		return true;
 	}
 
 	/**
@@ -62,11 +67,16 @@ class ToOne implements IComponentMapper
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof StaticContainer) {
-			return FALSE;
+			return false;
+		}
+
+		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
+			$callback($this->mapper, $component, $entity);
+			return true;
 		}
 
 		if (!$relation = $this->getRelation($meta, $component, $entity)) {
-			return FALSE;
+			return false;
 		}
 
 		// we want to delete the entity
@@ -109,7 +119,7 @@ class ToOne implements IComponentMapper
 
 		$this->mapper->save($relation, $component);
 
-		return TRUE;
+		return true;
 	}
 
 	/**
@@ -141,19 +151,16 @@ class ToOne implements IComponentMapper
 		$field = $component->getName();
 
 		if (!$meta->hasAssociation($field) || !$meta->isSingleValuedAssociation($field)) {
-			return FALSE;
+			return false;
 		}
 
 		// todo: allow access using property or method
 		$relation = $meta->getFieldValue($entity, $field);
 		if ($relation instanceof Collection) {
-			return FALSE;
+			return false;
 		}
 
 		if ($relation === NULL) {
-			$class = $meta->getAssociationTargetClass($field);
-			$relationMeta = $this->mapper->getEntityManager()->getClassMetadata($class);
-
 			$relation = $this->createEntity($meta, $component, $entity);
 			$meta->setFieldValue($entity, $field, $relation);
 		}

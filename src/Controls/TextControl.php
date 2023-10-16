@@ -149,7 +149,7 @@ class TextControl implements IComponentMapper
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{
 		if (!$component instanceof BaseControl) {
-			return FALSE;
+			return false;
 		}
 
 		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
@@ -163,7 +163,7 @@ class TextControl implements IComponentMapper
 				$value = NULL;
 			}
 			$this->accessor->setValue($entity, $name, $value);
-			return TRUE;
+			return true;
 		}
 
 		// sometimes we want to save some metadata to an entity
@@ -174,11 +174,11 @@ class TextControl implements IComponentMapper
 			property_exists($entity, $component->getName())
 		) {
 			$this->accessor->setValue($entity, $name, $component->getValue());
-			return TRUE;
+			return true;
 		}
 
 		if (!$meta->hasAssociation($name)) {
-			return FALSE;
+			return false;
 		}
 
 		$this->setItems($component, $entity, $name);
@@ -191,7 +191,7 @@ class TextControl implements IComponentMapper
 		if ($component instanceof MultiChoiceControl) {
 
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
-				return FALSE;
+				return false;
 			}
 
 			$collectionByIds = [];
@@ -234,7 +234,7 @@ class TextControl implements IComponentMapper
 	private function getCollection(ClassMetadata $meta, $entity, $field)
 	{
 		if (!$meta->hasAssociation($field) || $meta->isSingleValuedAssociation($field)) {
-			return FALSE;
+			return false;
 		}
 
 		$collection = $meta->getFieldValue($entity, $field);

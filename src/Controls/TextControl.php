@@ -62,7 +62,7 @@ class TextControl implements IComponentMapper
 			return true;
 		}
 
-		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
+		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME ?? $component->getName()))) {
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
 			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
@@ -157,7 +157,7 @@ class TextControl implements IComponentMapper
 			return true;
 		}
 
-		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME, $component->getName()))) {
+		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME ?? $component->getName()))) {
 			$value = $component->getValue();
 			if ($meta->isNullable($component->getName()) && $value === '') {
 				$value = NULL;
@@ -260,10 +260,10 @@ class TextControl implements IComponentMapper
 			&&
 			!count($component->getItems())
 			&&
-			($nameKey = $component->getOption(self::ITEMS_TITLE, FALSE))
+			($nameKey = $component->getOption(self::ITEMS_TITLE ?? FALSE))
 		) {
-			$criteria = $component->getOption(self::ITEMS_FILTER, array());
-			$orderBy = $component->getOption(self::ITEMS_ORDER, array());
+			$criteria = $component->getOption(self::ITEMS_FILTER ?? array());
+			$orderBy = $component->getOption(self::ITEMS_ORDER ?? array());
 
 			$related = $this->relatedMetadata($entity, $name);
 			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);

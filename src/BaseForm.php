@@ -29,7 +29,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	{
 		parent::__construct();
 
-		$this->setOnBeforeInitForm(function($form) {
+		$this->setOnBeforeInitForm(function(Form $form) {
 			if ($this->entity) {
 				$form->setEntity($this->entity);
 			}
@@ -38,9 +38,14 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		// we don't call setter intentionally to avoid logic in setter
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
-		$this->setOnBeforeProcessForm(function($form) {
-			if ($this->form->getEntity()) {
-				$this->form->mapToEntity();
+		$this->setOnBeforeProcessForm(function(Form $form) {
+			if (!($this->entity && $this->entity->getId()) && method_exists($this, 'initEntity')) {
+				$this->entity = $this->initEntity();
+				$form->setEntity($this->entity);
+			}
+
+			if ($form->getEntity()) {
+				$form->mapToEntity();
 
 				$this->onAfterMapToEntity($form);
 			}
@@ -51,12 +56,12 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 				return $this->entity;
 			} elseif ($type === Entity::class) {
 				return $this->entity;
+			} elseif ($type) {
+				return null;
 			}
 
 			return false;
 		};
-
-
 	}
 
 	// we need to call initOnAfterMapToForm last,
@@ -82,17 +87,9 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	}
 
 
-	final public function setEntity(Entity $entity)
+	final public function setEntity(?Entity $entity)
 	{
 		$this->entity = $entity;
-		if ($this->form) {
-			$this->form->setEntity($entity);
-		}
-
-		if (method_exists($this, 'initEntity') && !$entity->getId()) {
-			call_user_func([$this, 'initEntity'], $entity);
-		}
-
 		return $this;
 	}
 

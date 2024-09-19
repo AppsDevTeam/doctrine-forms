@@ -39,7 +39,11 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
 		$this->setOnBeforeProcessForm(function(Form $form) {
-			if (!($this->entity && $this->entity->getId()) && method_exists($this, 'initEntity')) {
+			if (
+				method_exists($this, 'initEntity')
+				&&
+				!$this->entity
+			) {
 				$this->entity = $this->initEntity();
 				$form->setEntity($this->entity);
 			}

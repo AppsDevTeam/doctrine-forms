@@ -2,8 +2,6 @@
 
 namespace ADT\DoctrineForms\Controls;
 
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
@@ -56,7 +54,7 @@ class TextControl implements IComponentMapper
 		if (!$component instanceof BaseControl) {
 			return FALSE;
 		}
-		
+
 		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
 			$callback($this->mapper, $component, $entity);
 			return true;
@@ -66,7 +64,7 @@ class TextControl implements IComponentMapper
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
 			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
-			$component->$valueSetter($gettedValue);
+			$component->$valueSetter($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
 			return TRUE;
 		}
 
@@ -75,7 +73,7 @@ class TextControl implements IComponentMapper
 		}
 
 		$this->setItems($component, $entity, $name);
-		
+
 		/** @var MultiChoiceControl $component */
 		if ($component instanceof MultiChoiceControl) {
 			if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
@@ -161,6 +159,14 @@ class TextControl implements IComponentMapper
 			$value = $component->getValue();
 			if ($meta->isNullable($component->getName()) && $value === '' || $component->getOption('hidden') === true) {
 				$value = NULL;
+			}
+			$value = $this->getEnumOrValue(get_class($entity), $name, $value);
+			$this->accessor->setValue($entity, $name, $value);
+			$reflectionProperty = new \ReflectionProperty($entity, $name);
+			$type = $reflectionProperty->getType();
+			if ($type && !$type->isBuiltin()) {
+				$enumType = $type->getName();
+				return is_subclass_of($enumType, UnitEnum::class);
 			}
 			$this->accessor->setValue($entity, $name, $value);
 			return true;
@@ -269,5 +275,20 @@ class TextControl implements IComponentMapper
 			$items = $this->findPairs($related, $criteria, $orderBy, $nameKey);
 			$component->setItems($items);
 		}
+	}
+
+	private function getEnumOrValue(string $class, string $property, $value)
+	{
+		$reflectionProperty = new \ReflectionProperty($class, $property);
+		$type = $reflectionProperty->getType();
+		if ($type && !$type->isBuiltin()) {
+			$enumType = $type->getName();
+			if (is_subclass_of($enumType, \UnitEnum::class)) {
+				return $enumType::from($value);
+			} else {
+				return $value;
+			}
+		}
+		return $value;
 	}
 }

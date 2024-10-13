@@ -162,13 +162,6 @@ class TextControl implements IComponentMapper
 			}
 			$value = $this->getEnumOrValue(get_class($entity), $name, $value);
 			$this->accessor->setValue($entity, $name, $value);
-			$reflectionProperty = new \ReflectionProperty($entity, $name);
-			$type = $reflectionProperty->getType();
-			if ($type && !$type->isBuiltin()) {
-				$enumType = $type->getName();
-				return is_subclass_of($enumType, UnitEnum::class);
-			}
-			$this->accessor->setValue($entity, $name, $value);
 			return true;
 		}
 

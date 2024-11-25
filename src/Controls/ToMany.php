@@ -13,7 +13,7 @@ use Nette\ComponentModel\Component;
 class ToMany implements IComponentMapper
 {
 	use CreateEntityTrait;
-	
+
 	/**
 	 * @var EntityFormMapper
 	 */
@@ -39,12 +39,12 @@ class ToMany implements IComponentMapper
 		if (!$component instanceof DynamicContainer) {
 			return false;
 		}
-		
+
 		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
 			$callback($this->mapper, $component, $entity);
 			return true;
 		}
-		
+
 		if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
 			return false;
 		}
@@ -90,7 +90,12 @@ class ToMany implements IComponentMapper
 			$callback($this->mapper, $component, $entity);
 			return true;
 		}
-		
+
+		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
+			$this->mapper->getAccessor()->setValue($entity, $component->getName(), (array) $component->getValues());
+			return true;
+		}
+
 		if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
 			return false;
 		}
@@ -112,7 +117,7 @@ class ToMany implements IComponentMapper
 				if ($container->isEmpty()) {
 					continue;
 				}
-				
+
 				$collection[$container->getName()] = $relation = $this->createEntity($meta, $component, $entity);
 			}
 			// container does not have a _new_ prefix and it's not in the collection

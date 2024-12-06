@@ -45,6 +45,22 @@ class ToMany implements IComponentMapper
 			return true;
 		}
 
+		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
+			$reflectionProperty = new \ReflectionProperty(get_class($entity), $component->getName());
+			$reflectionProperty->setAccessible(true);
+			$data = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
+			foreach ($data as $row => $values) {
+				if (!$component->form->isSubmitted() || isset($component->getUnsafeValues('array')[$row])) {
+					foreach ($values as $key => $value) {
+						if (isset($component[$row][$key])) {
+							$component[$row][$key]->setValue($value);
+						}
+					}
+				}
+			}
+			return true;
+		}
+
 		if (!$collection = $this->getCollection($meta, $entity, $component->getName())) {
 			return false;
 		}
@@ -92,7 +108,7 @@ class ToMany implements IComponentMapper
 		}
 
 		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
-			$this->mapper->getAccessor()->setValue($entity, $component->getName(), (array) $component->getValues());
+			$this->mapper->getAccessor()->setValue($entity, $component->getName(), array_values((array) $component->getValues()));
 			return true;
 		}
 

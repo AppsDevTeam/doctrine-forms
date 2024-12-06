@@ -9,6 +9,7 @@ use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Nette\ComponentModel\Component;
+use Nette\Forms\Controls\DateTimeControl;
 
 class ToMany implements IComponentMapper
 {
@@ -53,7 +54,13 @@ class ToMany implements IComponentMapper
 				if (!$component->form->isSubmitted() || isset($component->getUnsafeValues('array')[$row])) {
 					foreach ($values as $key => $value) {
 						if (isset($component[$row][$key])) {
-							$component[$row][$key]->setValue($value);
+							if ($component[$row][$key] instanceof DateTimeControl) {
+								$component[$row][$key]->setDefaultValue(new \DateTimeImmutable($value['date'], new \DateTimeZone($value['timezone'])));
+
+							} else {
+								$component[$row][$key]->setDefaultValue($value);
+							}
+
 						}
 					}
 				}

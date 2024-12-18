@@ -51,17 +51,15 @@ class ToMany implements IComponentMapper
 			$reflectionProperty->setAccessible(true);
 			$data = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			foreach ($data as $row => $values) {
-				if (!$component->form->isSubmitted() || isset($component->getUnsafeValues('array')[$row])) {
-					foreach ($values as $key => $value) {
-						if (isset($component[$row][$key])) {
-							if ($component[$row][$key] instanceof DateTimeControl) {
-								$component[$row][$key]->setDefaultValue(new \DateTimeImmutable($value['date'], new \DateTimeZone($value['timezone'])));
+				foreach ($values as $key => $value) {
+					if (isset($component[$row][$key])) {
+						if ($component[$row][$key] instanceof DateTimeControl) {
+							$component[$row][$key]->setDefaultValue(new \DateTimeImmutable($value['date'], new \DateTimeZone($value['timezone'])));
 
-							} else {
-								$component[$row][$key]->setDefaultValue($value);
-							}
-
+						} else {
+							$component[$row][$key]->setDefaultValue($value);
 						}
+
 					}
 				}
 			}
@@ -76,22 +74,19 @@ class ToMany implements IComponentMapper
 		$UoW = $em->getUnitOfWork();
 
 		foreach ($collection as $key => $relation) {
-			// mapuj jen pri neodeslanem formulari nebo pokud nebyl radek odstranen uzivatelem
-			if (!$component->form->isSubmitted() || isset($component->getUnsafeValues('array')[$key])) {
-				if ($UoW->getSingleIdentifierValue($relation)) {
-					$this->mapper->load($relation, $component[$key]);
+			if ($UoW->getSingleIdentifierValue($relation)) {
+				$this->mapper->load($relation, $component[$key]);
 
-					// we have to fill isFilled component value
-					// if isFilled component is set
-					if ($component[$key]->getIsFilledComponent()) {
-						$component[$key]->getIsFilledComponent()->setDefaultValue(true);
-					}
-
-					continue;
+				// we have to fill isFilled component value
+				// if isFilled component is set
+				if ($component[$key]->getIsFilledComponent()) {
+					$component[$key]->getIsFilledComponent()->setDefaultValue(true);
 				}
 
-				$this->mapper->load($relation, $component[$key]);
+				continue;
 			}
+
+			$this->mapper->load($relation, $component[$key]);
 		}
 
 		return true;

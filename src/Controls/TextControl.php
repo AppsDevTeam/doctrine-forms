@@ -42,15 +42,12 @@ class TextControl implements IComponentMapper
 	 * @param ClassMetadata $meta
 	 * @param Component $component
 	 * @param $entity
-	 * @param bool $force
 	 * @return bool
 	 * @throws MappingException
 	 * @throws \ReflectionException
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity, $force = FALSE): bool
+	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
-		$valueSetter = $force ? 'setValue' : 'setDefaultValue';
-
 		if (!$component instanceof BaseControl) {
 			return FALSE;
 		}
@@ -64,7 +61,7 @@ class TextControl implements IComponentMapper
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
 			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
-			$component->$valueSetter($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
+			$component->setDefaultValue($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
 			return TRUE;
 		}
 
@@ -86,7 +83,7 @@ class TextControl implements IComponentMapper
 			foreach ($collection as $key => $relation) {
 				$value[] = $UoW->getSingleIdentifierValue($relation);
 			}
-			$component->$valueSetter($value);
+			$component->setDefaultValue($value);
 
 		} else {
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
@@ -95,7 +92,7 @@ class TextControl implements IComponentMapper
 
 			if ($relation) {
 				$UoW = $this->em->getUnitOfWork();
-				$component->$valueSetter($UoW->getSingleIdentifierValue($relation));
+				$component->setDefaultValue($UoW->getSingleIdentifierValue($relation));
 			}
 		}
 

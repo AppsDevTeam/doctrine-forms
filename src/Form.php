@@ -60,6 +60,10 @@ class Form extends \ADT\Forms\Form
 			throw new \Exception('An entity is not set.');
 		}
 
+		if ($this->isSubmitted()) {
+			return;
+		}
+
 		$this->getEntityMapper()->load($this->entity, $this);
 	}
 

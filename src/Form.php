@@ -2,8 +2,9 @@
 
 namespace ADT\DoctrineForms;
 
-use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
+use Closure;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nette\ComponentModel\IComponent;
 
 class Form extends \ADT\Forms\Form
@@ -15,7 +16,7 @@ class Form extends \ADT\Forms\Form
 	protected array $componentEntityMappers = [];
 	protected array $componentEntityFactories = [];
 
-	public function getEntityManager()
+	public function getEntityManager(): ?EntityManagerInterface
 	{
 		return $this->entityManager;
 	}
@@ -24,7 +25,7 @@ class Form extends \ADT\Forms\Form
 	{
 		if ($this->entityMapper === NULL) {
 			if (!$this->getEntityManager()) {
-				throw new \Exception('Set entity manager first via setEntityManager() method.');
+				throw new Exception('Set entity manager first via setEntityManager() method.');
 			}
 
 			$this->entityMapper = new EntityFormMapper($this->getEntityManager(), $this);
@@ -39,12 +40,8 @@ class Form extends \ADT\Forms\Form
 		return $this;
 	}
 
-	public function setEntity(object $entity): self
+	public function setEntity(Entity $entity): self
 	{
-		if (!is_object($entity)) {
-			throw new InvalidArgumentException('Expected object, ' . gettype($entity) . ' given.');
-		}
-
 		$this->entity = $entity;
 		return $this;
 	}
@@ -57,11 +54,7 @@ class Form extends \ADT\Forms\Form
 	public function mapToForm(): void
 	{
 		if (!$this->entity) {
-			throw new \Exception('An entity is not set.');
-		}
-
-		if ($this->isSubmitted()) {
-			return;
+			throw new Exception('An entity is not set.');
 		}
 
 		$this->getEntityMapper()->load($this->entity, $this);
@@ -72,34 +65,34 @@ class Form extends \ADT\Forms\Form
 		$this->getEntityMapper()->save($this->entity, $this);
 	}
 
-	public function getComponentFormMapper(IComponent $component): ?\Closure
+	public function getComponentFormMapper(IComponent $component): ?Closure
 	{
 		return $this->componentFormMappers[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentFormMapper(IComponent $component, \Closure $formMapper): self
+	public function setComponentFormMapper(IComponent $component, Closure $formMapper): self
 	{
 		$this->componentFormMappers[spl_object_hash($component)] = $formMapper;
 		return $this;
 	}
 
-	public function getComponentEntityMapper(IComponent $component): ?\Closure
+	public function getComponentEntityMapper(IComponent $component): ?Closure
 	{
 		return $this->componentEntityMappers[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentEntityMapper(IComponent $component, \Closure $entityMapper): self
+	public function setComponentEntityMapper(IComponent $component, Closure $entityMapper): self
 	{
 		$this->componentEntityMappers[spl_object_hash($component)] = $entityMapper;
 		return $this;
 	}
 
-	public function getComponentEntityFactory(IComponent $component): ?\Closure
+	public function getComponentEntityFactory(IComponent $component): ?Closure
 	{
 		return $this->componentEntityFactories[spl_object_hash($component)] ?? null;
 	}
 
-	public function setComponentEntityFactory(IComponent $component, \Closure $entityFactory): self
+	public function setComponentEntityFactory(IComponent $component, Closure $entityFactory): self
 	{
 		$this->componentEntityFactories[spl_object_hash($component)] = $entityFactory;
 		return $this;

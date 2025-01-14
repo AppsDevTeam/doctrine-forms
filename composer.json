@@ -5,7 +5,7 @@
 	"homepage": "https://www.appsdevteam.com",
 	"license": ["MIT"],
 	"require": {
-		"php": ">=7.4",
+		"php": ">=8.0",
 		"doctrine/orm": "^2.4|^3.0",
 		"adt/nette-forms-components": "^1.0",
 		"symfony/property-access": "~3.3 || ^4.0 || ^5.0"

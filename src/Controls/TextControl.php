@@ -274,7 +274,7 @@ class TextControl implements IComponentMapper
 		if ($type && !$type->isBuiltin()) {
 			$enumType = $type->getName();
 			if (is_subclass_of($enumType, \UnitEnum::class)) {
-				return $enumType::from($value);
+				return $value ? $enumType::from($value) : null;
 			} else {
 				return $value;
 			}

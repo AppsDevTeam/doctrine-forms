@@ -61,7 +61,9 @@ class TextControl implements IComponentMapper
 			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
 			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
-			$component->setDefaultValue($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
+			if ($component->getOption('hidden') !== true) {
+				$component->setDefaultValue($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
+			}
 			return TRUE;
 		}
 

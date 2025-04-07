@@ -53,12 +53,14 @@ class ToMany implements IComponentMapper
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $component->getName());
 			$reflectionProperty->setAccessible(true);
 			$data = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
-			foreach ($data as $row => $values) {
-				if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$row])) {
-					foreach ($values as $key => $value) {
-						if (isset($component[$row][$key])) {
-							self::setDateTimeFromArray($value);
-							$component[$row][$key]->setDefaultValue($value);
+			if ($data) {
+				foreach ($data as $row => $values) {
+					if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$row])) {
+						foreach ($values as $key => $value) {
+							if (isset($component[$row][$key])) {
+								self::setDateTimeFromArray($value);
+								$component[$row][$key]->setDefaultValue($value);
+							}
 						}
 					}
 				}
@@ -181,7 +183,7 @@ class ToMany implements IComponentMapper
 		return $collection;
 	}
 
-	private static function setDateTimeFromArray(array|string &$value): bool
+	private static function setDateTimeFromArray(array|string|null &$value): bool
 	{
 		if (!isset($value['date'], $value['timezone'], $value['timezone_type'])) {
 			return false;

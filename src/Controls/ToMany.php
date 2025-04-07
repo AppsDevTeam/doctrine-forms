@@ -53,14 +53,12 @@ class ToMany implements IComponentMapper
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $component->getName());
 			$reflectionProperty->setAccessible(true);
 			$data = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
-			if ($data) {
-				foreach ($data as $row => $values) {
-					if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$row])) {
-						foreach ($values as $key => $value) {
-							if (isset($component[$row][$key])) {
-								self::setDateTimeFromArray($value);
-								$component[$row][$key]->setDefaultValue($value);
-							}
+			foreach ($data as $row => $values) {
+				if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$row])) {
+					foreach ($values as $key => $value) {
+						if (isset($component[$row][$key])) {
+							self::setDateTimeFromArray($value);
+							$component[$row][$key]->setDefaultValue($value);
 						}
 					}
 				}

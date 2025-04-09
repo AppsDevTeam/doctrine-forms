@@ -109,9 +109,9 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	public function initOnAfterMapToForm(Form $form): void
 	{
 		if ($this->form->getEntity()) {
-			$this->processToggles($form, emptyValue: false);
 			$form->mapToForm();
 			$this->onAfterMapToForm($form);
+			$this->processToggles($form, emptyValue: false);
 		}
 	}
 }

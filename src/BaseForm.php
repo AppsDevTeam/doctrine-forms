@@ -11,7 +11,7 @@ use Exception;
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm
 {
-	protected ?Entity $entity = null;
+	protected Entity|\Closure|null $entity = null;
 
 	/**
 	 * @internal
@@ -30,7 +30,9 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		parent::__construct();
 
 		$this->setOnBeforeInitForm(function(Form $form) {
-			if ($this->entity) {
+			if (is_callable($this->entity)) {
+				$form->setEntity(($this->entity)());
+			} elseif ($this->entity) {
 				$form->setEntity($this->entity);
 			}
 		});
@@ -46,6 +48,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 			) {
 				$this->entity = $this->initEntity();
 				$form->setEntity($this->entity);
+			} elseif (is_callable($this->entity)) {
+				$form->setEntity(($this->entity)());
 			}
 
 			if ($form->getEntity()) {
@@ -91,9 +95,16 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	}
 
 
-	final public function setEntity(?Entity $entity)
+	final public function setEntity(Entity|callable|null $entity)
 	{
-		$this->entity = $entity;
+		if (is_callable($entity)) {
+			$this->entity = $entity;
+		} elseif ($entity instanceof Entity) {
+			$this->entity = $entity;
+		} elseif ($this->getEntityClass()) {
+			$this->entity = new ($this->getEntityClass());
+		}
+
 		return $this;
 	}
 
@@ -110,8 +121,10 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	{
 		if ($this->form->getEntity()) {
 			$form->mapToForm();
+
 			$this->onAfterMapToForm($form);
-			$this->processToggles($form, emptyValue: false);
 		}
 	}
+
+	abstract public function getEntityClass(): ?string;
 }

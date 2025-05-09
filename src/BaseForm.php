@@ -2,16 +2,16 @@
 
 namespace ADT\DoctrineForms;
 
+use Closure;
 use Exception;
 
 /**
- * @property Form $form
  * @method onAfterMapToForm($form)
  * @method onAfterMapToEntity($form)
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm
 {
-	protected Entity|\Closure|null $entity = null;
+	protected Entity|Closure|null $entity = null;
 
 	/**
 	 * @internal
@@ -59,10 +59,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 			}
 		});
 
-		$this->paramResolvers[] = function($type) {
-			if (is_subclass_of($type, Entity::class)) {
-				return $this->entity;
-			} elseif ($type === Entity::class) {
+		$this->paramResolvers[] = function(string $type, object|array|null $values, string $methodName) {
+			if ((is_subclass_of($type, Entity::class) || $type === Entity::class) && ($this->entity->getId() || $methodName === 'processForm')) {
 				return $this->entity;
 			} elseif ($type) {
 				return null;
@@ -74,7 +72,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 
 	// we need to call initOnAfterMapToForm last,
 	// so we will remove initOnAfterMapToForm, add callback and add initOnAfterMapToForm again
-	public function setOnAfterInitForm(callable $onAfterInitForm)
+	public function setOnAfterInitForm(callable $onAfterInitForm): static
 	{
 		array_pop($this->onAfterInitForm);
 		$this->onAfterInitForm[] = $onAfterInitForm;
@@ -82,20 +80,19 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return $this;
 	}
 
-	public function setOnAfterMapToForm(callable $onAfterMapToForm)
+	public function setOnAfterMapToForm(callable $onAfterMapToForm): static
 	{
 		$this->onAfterMapToForm[] = $onAfterMapToForm;
 		return $this;
 	}
 
-	public function setOnAfterMapToEntity(callable $onAfterMapToEntity)
+	public function setOnAfterMapToEntity(callable $onAfterMapToEntity): static
 	{
 		$this->onAfterMapToEntity[] = $onAfterMapToEntity;
 		return $this;
 	}
 
-
-	final public function setEntity(Entity|callable|null $entity)
+	final public function setEntity(Entity|callable|null $entity): static
 	{
 		if (is_callable($entity)) {
 			$this->entity = $entity;
@@ -119,7 +116,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	 */
 	public function initOnAfterMapToForm(Form $form): void
 	{
-		if ($this->form->getEntity()) {
+		if ($form->getEntity()) {
 			$form->mapToForm();
 
 			$this->onAfterMapToForm($form);

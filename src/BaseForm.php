@@ -2,7 +2,9 @@
 
 namespace ADT\DoctrineForms;
 
-use Closure;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnitOfWork;
+use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 
 /**
@@ -11,7 +13,10 @@ use Exception;
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm
 {
-	protected Entity|Closure|null $entity = null;
+	abstract protected function getEntityManager(): EntityManagerInterface;
+
+	/** @var null|callable|object */
+	protected $entity = null;
 
 	/**
 	 * @internal
@@ -30,9 +35,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		parent::__construct();
 
 		$this->setOnBeforeInitForm(function(Form $form) {
-			if (is_callable($this->entity)) {
-				$form->setEntity(($this->entity)());
-			} elseif ($this->entity) {
+			if ($this->getEntity()) {
 				$form->setEntity($this->entity);
 			}
 		});
@@ -41,27 +44,30 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
 		$this->setOnBeforeProcessForm(function(Form $form) {
-			if (
-				method_exists($this, 'initEntity')
-				&&
-				!$this->entity
-			) {
-				$this->entity = $this->initEntity();
+			if (!$this->getEntity()) {
+				if (is_callable($this->entity)) {
+					$this->entity = ($this->entity)();
+
+				} elseif (method_exists($this, 'initEntity')) {
+					$this->entity = $this->initEntity();
+
+				} else {
+					throw new Exception('You have to set a new entity via initEntity() or setEntity() method.');
+				}
+
+				$this->checkEntity($this->entity);
 				$form->setEntity($this->entity);
-			} elseif (is_callable($this->entity)) {
-				$form->setEntity(($this->entity)());
 			}
 
-			if ($form->getEntity()) {
+			if ($this->form->getEntity()) {
 				$form->mapToEntity();
-
 				$this->onAfterMapToEntity($form);
 			}
 		});
 
-		$this->paramResolvers[] = function(string $type, object|array|null $values, string $methodName) {
-			if ((is_subclass_of($type, Entity::class) || $type === Entity::class) && ($this->entity->getId() || $methodName === 'processForm')) {
-				return $this->entity;
+		$this->paramResolvers[] = function(string $type) {
+			if ($this->getEntity() && $this->getEntity() instanceof $type) {
+				return $this->getEntity();
 			} elseif ($type) {
 				return null;
 			}
@@ -92,36 +98,56 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return $this;
 	}
 
-	final public function setEntity(Entity|callable|null $entity): static
-	{
-		if (is_callable($entity)) {
-			$this->entity = $entity;
-		} elseif ($entity instanceof Entity) {
-			$this->entity = $entity;
-		} elseif ($this->getEntityClass()) {
-			$this->entity = new ($this->getEntityClass());
-		}
-
-		return $this;
-	}
-
-	protected function createComponentForm(): Form
-	{
-		return new Form();
-	}
-
 	/**
 	 * @throws Exception
 	 * @internal
 	 */
 	public function initOnAfterMapToForm(Form $form): void
 	{
-		if ($form->getEntity()) {
+		if ($this->getEntity()) {
 			$form->mapToForm();
-
 			$this->onAfterMapToForm($form);
 		}
 	}
 
-	abstract public function getEntityClass(): ?string;
+	/**
+	 * @throws Exception
+	 */
+	final public function setEntity(object|callable|null $entity): static
+	{
+		if ($entity && !is_callable($entity)) {
+			$this->checkEntity($entity);
+
+			if ($this->getEntityManager()->getUnitOfWork()->getEntityState($entity) === UnitOfWork::STATE_NEW) {
+				throw new Exception('Pass the new entity as a callback.');
+			}
+		}
+
+		$this->entity = $entity;
+
+		return $this;
+	}
+
+	protected function createComponentForm()
+	{
+		return new Form();
+	}
+
+	private function checkEntity($entity)
+	{
+		if (!is_object($entity)) {
+			throw new Exception('Callback "initEntity" or "setEntity" must return a valid Doctrine entity.');
+		}
+
+		try {
+			$this->getEntityManager()->getClassMetadata($entity::class);
+		} catch (MappingException) {
+			throw new Exception(sprintf('Class %s is not a valid Doctrine entity.', $entity::class));
+		}
+	}
+
+	private function getEntity()
+	{
+		return $this->entity && !is_callable($this->entity) ? $this->entity : null;
+	}
 }

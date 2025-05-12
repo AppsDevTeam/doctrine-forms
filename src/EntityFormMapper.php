@@ -107,7 +107,7 @@ class EntityFormMapper
 		}
 	}
 
-	public function getMetadata(Entity $entity): ClassMetadata
+	public function getMetadata(object $entity): ClassMetadata
 	{
 		return $this->em->getClassMetadata(get_class($entity));
 	}

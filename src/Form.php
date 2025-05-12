@@ -11,7 +11,7 @@ class Form extends \ADT\Forms\Form
 {
 	protected ?EntityManagerInterface $entityManager = null;
 	protected ?EntityFormMapper $entityMapper = null;
-	protected ?Entity $entity = null;
+	protected ?object $entity = null;
 	protected array $componentFormMappers = [];
 	protected array $componentEntityMappers = [];
 	protected array $componentEntityFactories = [];
@@ -40,13 +40,13 @@ class Form extends \ADT\Forms\Form
 		return $this;
 	}
 
-	public function setEntity(Entity $entity): self
+	public function setEntity(object $entity): self
 	{
 		$this->entity = $entity;
 		return $this;
 	}
 
-	public function getEntity(): ?Entity
+	public function getEntity(): ?object
 	{
 		return $this->entity;
 	}

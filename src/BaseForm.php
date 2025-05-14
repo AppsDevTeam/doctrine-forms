@@ -55,8 +55,10 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 					throw new Exception('You have to set a new entity via initEntity() or setEntity() method.');
 				}
 
-				$this->checkEntity($this->entity);
-				$form->setEntity($this->entity);
+				if ($this->entity) {
+					$this->checkEntity($this->entity);
+					$form->setEntity($this->entity);
+				}
 			}
 
 			if ($this->form->getEntity()) {
@@ -133,12 +135,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return new Form();
 	}
 
-	private function checkEntity($entity)
+	private function checkEntity(object $entity)
 	{
-		if (!is_object($entity)) {
-			throw new Exception('Callback "initEntity" or "setEntity" must return a valid Doctrine entity.');
-		}
-
 		try {
 			$this->getEntityManager()->getClassMetadata($entity::class);
 		} catch (MappingException) {

@@ -53,11 +53,9 @@ class Form extends \ADT\Forms\Form
 
 	public function mapToForm(): void
 	{
-		if (!$this->entity) {
-			throw new Exception('An entity is not set.');
+		if ($this->entity) {
+			$this->getEntityMapper()->load($this->entity, $this);
 		}
-
-		$this->getEntityMapper()->load($this->entity, $this);
 	}
 
 	public function mapToEntity(): void

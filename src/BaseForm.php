@@ -16,7 +16,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	abstract protected function getEntityManager(): EntityManagerInterface;
 
 	/** @var null|callable|object */
-	protected $entity = null;
+	private $entity = null;
 
 	/**
 	 * @internal
@@ -141,7 +141,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		}
 	}
 
-	private function getEntity()
+	final protected function getEntity()
 	{
 		return $this->entity && !is_callable($this->entity) ? $this->entity : null;
 	}

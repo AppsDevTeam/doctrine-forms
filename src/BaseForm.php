@@ -45,16 +45,19 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 
 		$this->setOnBeforeProcessForm(function(Form $form) {
 			if (!$this->getEntity()) {
-				if (method_exists($this, 'initEntity')) {
-					$entity = $this->initEntity();
-					if (is_callable($this->entity)) {
-						($this->entity)($entity);
+				if (is_callable($this->entity)) {
+					$this->entity = $this->invokeHandler($this->entity, $form->getValues());
+				} elseif (method_exists($this, 'createEntity')) {
+					$this->entity = $this->invokeHandler([$this, 'createEntity'], $form->getValues());
+				}
+
+				if ($this->entity) {
+					$this->checkEntity($this->entity);
+					if (method_exists($this, 'initEntity')) {
+						$this->initEntity($this->entity);
 					}
-					$this->entity = $entity;
-					if ($this->entity) {
-						$this->checkEntity($this->entity);
-						$form->setEntity($this->entity);
-					}
+					$form->setEntity($this->entity);
+					$this->getEntityManager()->persist($this->entity);
 				}
 			}
 

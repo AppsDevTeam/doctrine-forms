@@ -58,9 +58,9 @@ class Form extends \ADT\Forms\Form
 		}
 	}
 
-	public function mapToEntity(): void
+	public function mapToEntity($entity = null): void
 	{
-		$this->getEntityMapper()->save($this->entity, $this);
+		$this->getEntityMapper()->save($entity ?: $this->entity, $this);
 	}
 
 	public function getComponentFormMapper(IComponent $component): ?Closure

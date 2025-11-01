@@ -2,20 +2,20 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineComponents\Entities\Entity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
-use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 
 /**
  * @method onAfterMapToForm($form)
  * @method onAfterMapToEntity($form)
  */
-abstract class BaseForm extends \ADT\Forms\BaseForm
+abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
 {
 	abstract protected function getEntityManager(): EntityManagerInterface;
 
-	/** @var null|callable|object */
+	/** @var null|callable|Entity */
 	private $entity = null;
 
 	/**
@@ -52,7 +52,6 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 				}
 
 				if ($this->entity) {
-					$this->checkEntity($this->entity);
 					if (method_exists($this, 'initEntity')) {
 						$this->initEntity($this->entity);
 					}
@@ -115,11 +114,9 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 	/**
 	 * @throws Exception
 	 */
-	final public function setEntity(object|callable|null $entity): static
+	final public function setEntity(Entity|callable|null $entity): static
 	{
 		if ($entity && !is_callable($entity)) {
-			$this->checkEntity($entity);
-
 			if ($this->getEntityManager()->getUnitOfWork()->getEntityState($entity) === UnitOfWork::STATE_NEW) {
 				throw new Exception('Pass the new entity as a callback.');
 			}
@@ -135,16 +132,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm
 		return new Form();
 	}
 
-	private function checkEntity(object $entity)
-	{
-		try {
-			$this->getEntityManager()->getClassMetadata($entity::class);
-		} catch (MappingException) {
-			throw new Exception(sprintf('Class %s is not a valid Doctrine entity.', $entity::class));
-		}
-	}
-
-	final protected function getEntity()
+	final protected function getEntity(): callable|Entity|null
 	{
 		return $this->entity && !is_callable($this->entity) ? $this->entity : null;
 	}

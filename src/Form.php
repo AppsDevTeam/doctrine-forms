@@ -2,6 +2,7 @@
 
 namespace ADT\DoctrineForms;
 
+use ADT\DoctrineComponents\Entities\Entity;
 use Closure;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -11,7 +12,7 @@ class Form extends \ADT\Forms\Form
 {
 	protected ?EntityManagerInterface $entityManager = null;
 	protected ?EntityFormMapper $entityMapper = null;
-	protected ?object $entity = null;
+	protected ?Entity $entity = null;
 	protected array $componentFormMappers = [];
 	protected array $componentEntityMappers = [];
 	protected array $componentEntityFactories = [];
@@ -21,6 +22,9 @@ class Form extends \ADT\Forms\Form
 		return $this->entityManager;
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public function getEntityMapper(): EntityFormMapper
 	{
 		if ($this->entityMapper === NULL) {
@@ -40,7 +44,7 @@ class Form extends \ADT\Forms\Form
 		return $this;
 	}
 
-	public function setEntity(object $entity): self
+	public function setEntity(Entity $entity): self
 	{
 		$this->entity = $entity;
 		return $this;
@@ -51,6 +55,9 @@ class Form extends \ADT\Forms\Form
 		return $this->entity;
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public function mapToForm(): void
 	{
 		if ($this->entity) {
@@ -58,6 +65,9 @@ class Form extends \ADT\Forms\Form
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public function mapToEntity($entity = null): void
 	{
 		$this->getEntityMapper()->save($entity ?: $this->entity, $this);

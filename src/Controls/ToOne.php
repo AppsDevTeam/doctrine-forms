@@ -2,13 +2,15 @@
 
 namespace ADT\DoctrineForms\Controls;
 
+use ADT\DoctrineComponents\Entities\Entity;
 use ADT\Forms\StaticContainer;
 use Doctrine\Common\Collections\Collection;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Mapping\MappingException;
 use Nette\ComponentModel\Component;
+use ReflectionException;
 
 class ToOne implements IComponentMapper
 {
@@ -25,7 +27,8 @@ class ToOne implements IComponentMapper
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @throws ReflectionException
+	 * @throws MappingException
 	 */
 	public function load(ClassMetadata $meta, Component $component, $entity): bool
 	{
@@ -45,7 +48,7 @@ class ToOne implements IComponentMapper
 		// we have to fill isFilled component value
 		// if the field is not empty and isFilled component is set
 		if (
-			$relation->getId()
+			!$relation->isNew()
 			&&
 			$component->getIsFilledComponent()
 		) {
@@ -58,13 +61,10 @@ class ToOne implements IComponentMapper
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param Component $component
-	 * @param $entity
-	 * @return bool
-	 * @throws ORMException
+	 * @throws ReflectionException
+	 * @throws MappingException
 	 */
-	public function save(ClassMetadata $meta, Component $component, $entity): bool
+	public function save(ClassMetadata $meta, Component $component, Entity $entity): bool
 	{
 		if (!$component instanceof StaticContainer) {
 			return false;
@@ -82,7 +82,7 @@ class ToOne implements IComponentMapper
 		// we want to delete the entity
 		// if the field is not empty and isFilled component value is empty or the entire container is empty
 		if (
-			$relation->getId()
+			!$relation->isNew()
 			&&
 			(
 				$component->getIsFilledComponent() && !$component->getIsFilledComponent()->getValue()
@@ -97,11 +97,11 @@ class ToOne implements IComponentMapper
 		// if isFilled component is set and any other container control is filled
 		// we use this when someone updated the old values with the new ones
 		elseif (
-			$relation->getId()
+			!$relation->isNew()
 			&&
 			$component->getIsFilledComponent()
 			&&
-			!$component->isEmpty($excludeIsFilledComponent = true)
+			!$component->isEmpty(excludeIsFilledComponent: true)
 		) {
 			$this->removeComponent($meta, $component, $entity);
 			$relation = $this->getRelation($meta, $component, $entity);
@@ -109,7 +109,7 @@ class ToOne implements IComponentMapper
 		// we don't want to create an entity
 		// if the entire container is empty
 		elseif (
-			!$relation->getId()
+			$relation->isNew()
 			&&
 			$component->isEmpty()
 		) {
@@ -123,12 +123,10 @@ class ToOne implements IComponentMapper
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param $component
-	 * @param $entity
-	 * @throws ORMException
+	 * @throws ReflectionException
+	 * @throws MappingException
 	 */
-	private function removeComponent(ClassMetadata $meta, $component, $entity)
+	private function removeComponent(ClassMetadata $meta, $component, Entity $entity): void
 	{
 		$relation = $this->getRelation($meta, $component, $entity);
 
@@ -141,23 +139,21 @@ class ToOne implements IComponentMapper
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param StaticContainer $component
-	 * @param $entity
-	 * @return bool|mixed|object
+	 * @throws ReflectionException
+	 * @throws MappingException
 	 */
-	private function getRelation(ClassMetadata $meta, StaticContainer $component, $entity)
+	private function getRelation(ClassMetadata $meta, StaticContainer $component, Entity $entity): ?Entity
 	{
 		$field = $component->getName();
 
 		if (!$meta->hasAssociation($field) || !$meta->isSingleValuedAssociation($field)) {
-			return false;
+			return null;
 		}
 
 		// todo: allow access using property or method
 		$relation = $meta->getFieldValue($entity, $field);
 		if ($relation instanceof Collection) {
-			return false;
+			return null;
 		}
 
 		if ($relation === NULL) {

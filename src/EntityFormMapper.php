@@ -2,14 +2,12 @@
 
 namespace ADT\DoctrineForms;
 
-use ADT\DoctrineForms\Exceptions\InvalidArgumentException;
+use ADT\DoctrineComponents\Entities\Entity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Iterator;
-use Nette\ComponentModel\IComponent;
 use Nette\Forms\Container;
-use Nette\Forms\Controls\BaseControl;
-use Nette\Forms\IControl;
+use Nette\Forms\Control;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class EntityFormMapper
@@ -36,10 +34,7 @@ class EntityFormMapper
 		);
 	}
 
-	/**
-	 * @return PropertyAccessor
-	 */
-	public function getAccessor()
+	public function getAccessor(): ?PropertyAccessor
 	{
 		if ($this->accessor === NULL) {
 			$this->accessor = new PropertyAccessor(TRUE);
@@ -48,19 +43,12 @@ class EntityFormMapper
 		return $this->accessor;
 	}
 
-	/**
-	 * @return EntityManagerInterface
-	 */
-	public function getEntityManager()
+	public function getEntityManager(): EntityManagerInterface
 	{
 		return $this->em;
 	}
 
-	/**
-	 * @param object $entity
-	 * @param IComponent $formElement
-	 */
-	public function load($entity, $formElement)
+	public function load(Entity $entity, Container|Control $formElement): void
 	{
 		$meta = $this->getMetadata($entity);
 
@@ -73,11 +61,7 @@ class EntityFormMapper
 		}
 	}
 
-	/**
-	 * @param object $entity
-	 * @param BaseControl|Container $formElement
-	 */
-	public function save($entity, $formElement)
+	public function save(Entity $entity, Container|Control $formElement): void
 	{
 		$meta = $this->getMetadata($entity);
 
@@ -90,20 +74,12 @@ class EntityFormMapper
 		}
 	}
 
-	/**
-	 * @param $formElement
-	 * @return Iterator|IControl[]
-	 */
-	private static function iterate($formElement)
+	private static function iterate(Container|Control $formElement): Iterator|array
 	{
 		if ($formElement instanceof Container) {
 			return $formElement->getComponents();
-
-		} elseif ($formElement instanceof IControl) {
-			return array($formElement);
-
 		} else {
-			throw new InvalidArgumentException('Expected Nette\Forms\Container or Nette\Forms\IControl, but ' . get_class($formElement) . ' given');
+			return array($formElement);
 		}
 	}
 

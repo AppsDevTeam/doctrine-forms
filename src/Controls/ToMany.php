@@ -100,6 +100,7 @@ class ToMany implements IComponentMapper
 	 * @param $entity
 	 * @return bool
 	 * @throws MappingException
+	 * @throws ReflectionException
 	 */
 	public function save(ClassMetadata $meta, Component $component, $entity): bool
 	{

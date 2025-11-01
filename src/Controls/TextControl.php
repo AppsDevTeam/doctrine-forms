@@ -2,7 +2,7 @@
 
 namespace ADT\DoctrineForms\Controls;
 
-use Doctrine\ORM\EntityManager;
+use ADT\DoctrineComponents\Entities\Entity;
 use ADT\DoctrineForms\EntityFormMapper;
 use ADT\DoctrineForms\IComponentMapper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,22 +13,16 @@ use Nette\ComponentModel\Component;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\ChoiceControl;
 use Nette\Forms\Controls\MultiChoiceControl;
-use Symfony\Component\PropertyAccess\Exception\UninitializedPropertyException;
+use ReflectionException;
+use ReflectionProperty;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Doctrine\Common\Collections\ArrayCollection;
+use UnitEnum;
 
 class TextControl implements IComponentMapper
 {
-	/**
-	 * @var EntityFormMapper
-	 */
 	private EntityFormMapper $mapper;
-
-	/**
-	 * @var PropertyAccessor
-	 */
 	private ?PropertyAccessor $accessor;
-
 	private EntityManagerInterface $em;
 
 	public function __construct(EntityFormMapper $mapper)
@@ -39,14 +33,10 @@ class TextControl implements IComponentMapper
 	}
 
 	/**
-	 * @param ClassMetadata $meta
-	 * @param Component $component
-	 * @param $entity
-	 * @return bool
+	 * @throws ReflectionException
 	 * @throws MappingException
-	 * @throws \ReflectionException
 	 */
-	public function load(ClassMetadata $meta, Component $component, $entity): bool
+	public function load(ClassMetadata $meta, Component $component, Entity $entity): bool
 	{
 		if (!$component instanceof BaseControl) {
 			return FALSE;
@@ -58,11 +48,11 @@ class TextControl implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME) ?? $component->getName())) {
-			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
+			$reflectionProperty = new ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
-			$gettedValue = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
+			$gettedValue = !$entity->isNew() || $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			if ($component->getOption('hidden') !== true) {
-				$component->setDefaultValue($gettedValue instanceof \UnitEnum ? $gettedValue->value : $gettedValue);
+				$component->setDefaultValue($gettedValue instanceof UnitEnum ? $gettedValue->value : $gettedValue);
 			}
 			return TRUE;
 		}
@@ -82,13 +72,13 @@ class TextControl implements IComponentMapper
 			$UoW = $this->em->getUnitOfWork();
 
 			$value = [];
-			foreach ($collection as $key => $relation) {
+			foreach ($collection as $relation) {
 				$value[] = $UoW->getSingleIdentifierValue($relation);
 			}
 			$component->setDefaultValue($value);
 
 		} else {
-			$reflectionProperty = new \ReflectionProperty(get_class($entity), $name);
+			$reflectionProperty = new ReflectionProperty(get_class($entity), $name);
 			$reflectionProperty->setAccessible(true);
 			$relation = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 
@@ -101,14 +91,9 @@ class TextControl implements IComponentMapper
 		return TRUE;
 	}
 
-	/**
-	 * @param string|object $entity
-	 * @param string $relationName
-	 * @return ClassMetadata
-	 */
-	private function relatedMetadata($entity, $relationName)
+	private function relatedMetadata(Entity $entity, string $relationName): ClassMetadata
 	{
-		$meta = $this->em->getClassMetadata(is_object($entity) ? get_class($entity) : $entity);
+		$meta = $this->em->getClassMetadata(get_class($entity));
 		$targetClass = $meta->getAssociationTargetClass($relationName);
 		return $this->em->getClassMetadata($targetClass);
 	}
@@ -121,7 +106,7 @@ class TextControl implements IComponentMapper
 	 * @return array
 	 * @throws MappingException
 	 */
-	private function findPairs(ClassMetadata $meta, $criteria, $orderBy, $nameKey)
+	private function findPairs(ClassMetadata $meta, $criteria, $orderBy, $nameKey): array
 	{
 		$repository = $this->em->getRepository($meta->getName());
 
@@ -156,6 +141,7 @@ class TextControl implements IComponentMapper
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME) ?? $component->getName())) {
 			$value = $component->getValue();
+
 			if ($meta->isNullable($component->getName()) && $value === '' || $component->getOption('hidden') === true) {
 				$value = NULL;
 			}
@@ -164,8 +150,8 @@ class TextControl implements IComponentMapper
 			return true;
 		}
 
-		// sometimes we want to save some metadata to an entity
-		// for example base64 of an image cropped in a browser
+		// sometimes we want to save some metadata to an entity,
+		// for example, base64 of an image cropped in a browser
 		if (
 			!$meta->hasAssociation($name)
 			&&
@@ -197,14 +183,14 @@ class TextControl implements IComponentMapper
 				$collectionByIds[] = $i->getId();
 			}
 
-			$identifiers = $identifier ? $identifier : [];
+			$identifiers = $identifier ?: [];
 			$received = [];
 
 			foreach ($identifiers as $identifier) {
 				if (empty($identifier)) continue;
 
 				if (!in_array($identifier, $collectionByIds)) { // entity was added from the client
-					$collection[] = $relation = $repository->find($identifier);
+					$collection[] = $repository->find($identifier);
 				}
 
 				$received[] = $identifier;
@@ -223,13 +209,7 @@ class TextControl implements IComponentMapper
 		return TRUE;
 	}
 
-	/**
-	 * @param ClassMetadata $meta
-	 * @param $entity
-	 * @param $field
-	 * @return bool|ArrayCollection|mixed
-	 */
-	private function getCollection(ClassMetadata $meta, $entity, $field)
+	private function getCollection(ClassMetadata $meta, Entity $entity, string $field)
 	{
 		if (!$meta->hasAssociation($field) || $meta->isSingleValuedAssociation($field)) {
 			return false;
@@ -245,12 +225,9 @@ class TextControl implements IComponentMapper
 	}
 
 	/**
-	 * @param Component $component
-	 * @param $entity
-	 * @param $name
 	 * @throws MappingException
 	 */
-	private function setItems(Component $component, $entity, $name)
+	private function setItems(Component $component, Entity $entity, string $name): void
 	{
 		/** @var ChoiceControl|MultiChoiceControl $component */
 		if (
@@ -269,13 +246,16 @@ class TextControl implements IComponentMapper
 		}
 	}
 
+	/**
+	 * @throws ReflectionException
+	 */
 	private function getEnumOrValue(string $class, string $property, $value)
 	{
-		$reflectionProperty = new \ReflectionProperty($class, $property);
+		$reflectionProperty = new ReflectionProperty($class, $property);
 		$type = $reflectionProperty->getType();
 		if ($type && !$type->isBuiltin()) {
 			$enumType = $type->getName();
-			if (is_subclass_of($enumType, \UnitEnum::class)) {
+			if (is_subclass_of($enumType, UnitEnum::class)) {
 				return $value ? $enumType::from($value) : null;
 			} else {
 				return $value;

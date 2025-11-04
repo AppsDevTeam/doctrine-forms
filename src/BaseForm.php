@@ -53,7 +53,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
 
 				if ($this->entity) {
 					if (method_exists($this, 'initEntity')) {
-						$this->initEntity($this->entity);
+						$this->invokeHandler([$this, 'initEntity'], $form->getValues());
 					}
 					$form->setEntity($this->entity);
 					$this->getEntityManager()->persist($this->entity);

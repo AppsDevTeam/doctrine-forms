@@ -157,6 +157,10 @@ class ToMany implements IComponentMapper
 		$deletedCollectionEntityListener = $this->getDeletedCollectionEntityListener();
 
 		foreach ($collection as $key => $relation) {
+			if ($collection[$key]->isNew()) {
+				continue;
+			}
+
 			if (!in_array((string) $key, $received)) {
 				$deletedCollectionEntityListener?->addDeletedEntity($collection[$key]);
 				unset($collection[$key]);

@@ -2,6 +2,7 @@
 
 namespace ADT\DoctrineForms\Controls;
 
+use ADT\DoctrineForms\Listeners\DeletedCollectionEntityListener;
 use ADT\Forms\DynamicContainer;
 use ADT\Forms\StaticContainer;
 use DateTimeImmutable;
@@ -109,8 +110,9 @@ class ToMany implements IComponentMapper
 		}
 
 		if ($callback = $this->mapper->getForm()->getComponentEntityMapper($component)) {
-			$callback($this->mapper, $component, $entity);
-			return true;
+			if (!$callback($this->mapper, $component, $entity)) {
+				return true;
+			}
 		}
 
 		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
@@ -151,9 +153,12 @@ class ToMany implements IComponentMapper
 
 			$this->mapper->save($relation, $container);
 		}
+		
+		$deletedCollectionEntityListener = $this->getDeletedCollectionEntityListener();
 
 		foreach ($collection as $key => $relation) {
 			if (!in_array((string) $key, $received)) {
+				$deletedCollectionEntityListener?->addDeletedEntity($collection[$key]);
 				unset($collection[$key]);
 			}
 		}
@@ -198,5 +203,18 @@ class ToMany implements IComponentMapper
 		} catch (Exception) {
 			return false;
 		}
+	}
+	
+	public function getDeletedCollectionEntityListener(): ?DeletedCollectionEntityListener
+	{
+		foreach ($this->mapper->getEntityManager()->getEventManager()->getAllListeners() as $listeners) {
+			foreach ($listeners as $listener) {
+				if ($listener instanceof DeletedCollectionEntityListener) {
+					return $listener;
+				}
+			}
+		}
+		
+		return null;
 	}
 }

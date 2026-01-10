@@ -8,7 +8,7 @@ use Doctrine\ORM\UnitOfWork;
 use Exception;
 
 /**
- * @method onAfterMapToForm($form)
+ * @method onAfterMapToForm($form, Entity $entity)
  * @method onAfterMapToEntity($form)
  */
 abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
@@ -107,7 +107,7 @@ abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
 	{
 		if ($this->getEntity()) {
 			$form->mapToForm();
-			$this->onAfterMapToForm($form);
+			$this->onAfterMapToForm($form, $this->getEntity());
 		}
 	}
 

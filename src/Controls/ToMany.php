@@ -46,8 +46,9 @@ class ToMany implements IComponentMapper
 		}
 
 		if ($callback = $this->mapper->getForm()->getComponentFormMapper($component)) {
-			$callback($this->mapper, $component, $entity);
-			return true;
+			if (!$callback($this->mapper, $component, $entity)) {
+				return true;
+			}
 		}
 
 		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
@@ -142,7 +143,11 @@ class ToMany implements IComponentMapper
 					continue;
 				}
 
-				$collection[$container->getName()] = $relation = $this->createEntity($meta, $component, $entity);
+				$relation = $this->createEntity($meta, $component, $entity);
+				// v createEntity se vola setter a ten muze automaticky entitu pridavat do kolekce
+				if (!$collection->contains($relation)) {
+					$collection[$container->getName()] = $relation;
+				}
 			}
 			// container does not have a _new_ prefix, and it's not in the collection
 			elseif (!$relation = $collection->get($container->getName())) {
@@ -153,7 +158,7 @@ class ToMany implements IComponentMapper
 
 			$this->mapper->save($relation, $container);
 		}
-		
+
 		$deletedCollectionEntityListener = $this->getDeletedCollectionEntityListener();
 
 		foreach ($collection as $key => $relation) {
@@ -208,7 +213,7 @@ class ToMany implements IComponentMapper
 			return false;
 		}
 	}
-	
+
 	public function getDeletedCollectionEntityListener(): ?DeletedCollectionEntityListener
 	{
 		foreach ($this->mapper->getEntityManager()->getEventManager()->getAllListeners() as $listeners) {
@@ -218,7 +223,7 @@ class ToMany implements IComponentMapper
 				}
 			}
 		}
-		
+
 		return null;
 	}
 }

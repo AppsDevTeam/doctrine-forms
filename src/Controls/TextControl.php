@@ -140,10 +140,6 @@ class TextControl implements IComponentMapper
 		}
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME) ?? $component->getName())) {
-			if ($meta->getSingleIdentifierFieldName() === $name) {
-				return false;
-			}
-
 			$value = $component->getValue();
 
 			if ($meta->isNullable($component->getName()) && $value === '' || $component->getOption('hidden') === true) {

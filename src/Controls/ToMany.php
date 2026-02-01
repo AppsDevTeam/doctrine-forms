@@ -143,18 +143,7 @@ class ToMany implements IComponentMapper
 					continue;
 				}
 
-				$relation = null;
-				foreach ($container->getComponents() as $_containerComponent) {
-					if ($_containerComponent->getName() === $meta->getSingleIdentifierFieldName()) {
-						$relation = $this->mapper->getEntityManager()->getRepository($meta->getAssociationTargetClass($component->getName()))->find($_containerComponent->getValue());
-						break;
-					}
-				}
-
-				if (!$relation) {
-					$relation = $this->createEntity($meta, $component, $entity);
-				}
-
+				$relation = $this->createEntity($meta, $component, $entity);
 				// v createEntity se vola setter a ten muze automaticky entitu pridavat do kolekce
 				if (!$collection->contains($relation)) {
 					$collection[$container->getName()] = $relation;

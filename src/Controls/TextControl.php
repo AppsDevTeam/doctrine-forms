@@ -49,7 +49,6 @@ class TextControl implements IComponentMapper
 
 		if ($meta->hasField($name = $component->getOption(self::FIELD_NAME) ?? $component->getName())) {
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $name);
-			$reflectionProperty->setAccessible(true);
 			$gettedValue = !$entity->isNew() || $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			if ($component->getOption('hidden') !== true) {
 				$component->setDefaultValue($gettedValue instanceof UnitEnum ? $gettedValue->value : $gettedValue);
@@ -79,7 +78,6 @@ class TextControl implements IComponentMapper
 
 		} else {
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $name);
-			$reflectionProperty->setAccessible(true);
 			$relation = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 
 			if ($relation) {

@@ -53,7 +53,6 @@ class ToMany implements IComponentMapper
 
 		if ($meta->hasField($component->getName()) && $meta->getFieldMapping($component->getName())['type'] === 'json') {
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $component->getName());
-			$reflectionProperty->setAccessible(true);
 			$data = $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			foreach ($data as $row => $values) {
 				if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$row])) {

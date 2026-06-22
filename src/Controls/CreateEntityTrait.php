@@ -18,7 +18,8 @@ trait CreateEntityTrait
 	protected function createEntity(ClassMetadata $meta, Component $component, $entity): Entity
 	{
 		if (!$callback = $this->mapper->getForm()->getComponentEntityFactory($component)) {
-			$relation = $this->mapper->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($component->getName()))->newInstance();
+			$className = $this->mapper->getEntityManager()->getClassMetadata($meta->getAssociationTargetClass($component->getName()))->getName();
+			$relation = new $className();
 			if ($meta->getAssociationMapping($component->getName())['type'] === ClassMetadata::ONE_TO_MANY) {
 				$relation->{'set' . (new ReflectionClass($entity))->getShortName()}($entity);
 			}

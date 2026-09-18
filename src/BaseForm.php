@@ -44,6 +44,8 @@ abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
 		$this->onAfterInitForm[] = [$this, 'initOnAfterMapToForm'];
 
 		$this->setOnBeforeProcessForm(function(Form $form) {
+			$isNewEntity = false;
+
 			if (!$this->getEntity()) {
 				if (is_callable($this->entity)) {
 					$this->entity = $this->invokeHandler($this->entity, $form->getValues());
@@ -56,13 +58,21 @@ abstract class BaseForm extends \ADT\Forms\BaseForm implements BaseFormInterface
 						$this->invokeHandler([$this, 'initEntity'], $form->getValues());
 					}
 					$form->setEntity($this->entity);
-					$this->getEntityManager()->persist($this->entity);
+					$isNewEntity = true;
 				}
 			}
 
 			if ($this->form->getEntity()) {
 				$form->mapToEntity();
 				$this->onAfterMapToEntity($form);
+			}
+
+			// Doctrine dispatches prePersist synchronously inside persist(), so persisting before
+			// mapToEntity() would expose an unmapped entity to every prePersist listener
+			// (slugs built from empty names, associations still null). Persist last so listeners
+			// see the same fully mapped entity they used to see in v1.
+			if ($isNewEntity) {
+				$this->getEntityManager()->persist($this->entity);
 			}
 		});
 

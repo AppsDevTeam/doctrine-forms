@@ -15,5 +15,16 @@
 		"psr-4": {
 			"ADT\\DoctrineForms\\": "src/"
 		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"ADT\\DoctrineForms\\Tests\\": "tests/"
+		}
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.5 || ^11.5 || ^12.0"
+	},
+	"scripts": {
+		"test": "phpunit"
 	}
 }

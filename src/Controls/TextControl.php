@@ -51,7 +51,7 @@ class TextControl implements IComponentMapper
 			$reflectionProperty = new ReflectionProperty(get_class($entity), $name);
 			$gettedValue = !$entity->isNew() || $reflectionProperty->isInitialized($entity) ? $reflectionProperty->getValue($entity) : null;
 			if ($component->getOption('hidden') !== true) {
-				$component->setDefaultValue($gettedValue instanceof UnitEnum ? $gettedValue->value : $gettedValue);
+				$component->setDefaultValue($this->toControlValue($component, $gettedValue));
 			}
 			return TRUE;
 		}
@@ -144,6 +144,13 @@ class TextControl implements IComponentMapper
 				$value = NULL;
 			}
 			$value = $this->getEnumOrValue(get_class($entity), $name, $value);
+
+			// Vyber nad boolem (select, radio s klici 0/1) vraci klic, ne bool - do entity
+			// patri bool. U zaskrtavatka je to bool uz ted, takze se nic nemeni.
+			if ($value !== null && $meta->getTypeOfField($name) === 'boolean') {
+				$value = (bool) $value;
+			}
+
 			$this->accessor->setValue($entity, $name, $value);
 			return true;
 		}
@@ -247,6 +254,24 @@ class TextControl implements IComponentMapper
 	/**
 	 * @throws ReflectionException
 	 */
+	/**
+	 * Bool z entity se do vyberu (select, radio) predava jako 0/1. ChoiceControl hleda klic
+	 * pres `(string) $value` a `(string) false` je prazdny retezec, takze `false` by skoncilo
+	 * vyjimkou "out of allowed set" misto vybrane polozky 0. Zaskrtavatko bere bool primo.
+	 */
+	private function toControlValue(BaseControl $component, mixed $value): mixed
+	{
+		if ($value instanceof UnitEnum) {
+			return $value->value;
+		}
+
+		if (is_bool($value) && $component instanceof ChoiceControl) {
+			return (int) $value;
+		}
+
+		return $value;
+	}
+
 	private function getEnumOrValue(string $class, string $property, $value)
 	{
 		$reflectionProperty = new ReflectionProperty($class, $property);

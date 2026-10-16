@@ -92,6 +92,30 @@ final class TextControlTest extends TestCase
 		self::assertFalse($company->getIsActive());
 	}
 
+	/** Skryte pole (vypnuty toggle sekce) se uklada jako null - nenullovatelny bool dostane false. */
+	public function testHiddenCheckboxInNotNullableColumnIsSavedAsFalse(): void
+	{
+		$company = (new Company())->setIsActive(true);
+		$form = $this->createForm($company);
+		$form->addCheckbox('isActive')->setValue(true)->setOption('hidden', true);
+
+		$form->mapToEntity();
+
+		self::assertFalse($company->getIsActive());
+	}
+
+	/** Nullable bool ze skryteho pole zustava null. */
+	public function testHiddenSelectInNullableBoolColumnIsSavedAsNull(): void
+	{
+		$company = (new Company())->setIsVatPayer(true);
+		$form = $this->createForm($company);
+		$form->addSelect('isVatPayer', null, [0 => 'Ne', 1 => 'Ano'])->setValue(1)->setOption('hidden', true);
+
+		$form->mapToEntity();
+
+		self::assertNull($company->getIsVatPayer());
+	}
+
 	public function testTextIsMappedUnchanged(): void
 	{
 		$company = (new Company())->setName('ACME');

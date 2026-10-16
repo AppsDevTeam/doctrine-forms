@@ -147,7 +147,8 @@ class TextControl implements IComponentMapper
 
 			// Vyber nad boolem (select, radio s klici 0/1) vraci klic, ne bool - do entity
 			// patri bool. U zaskrtavatka je to bool uz ted, takze se nic nemeni.
-			if ($value !== null && $meta->getTypeOfField($name) === 'boolean') {
+			// Skryte pole dava null, ktery nenullovatelny bool neprijme - tam je to false.
+			if ($meta->getTypeOfField($name) === 'boolean' && ($value !== null || !$meta->isNullable($name))) {
 				$value = (bool) $value;
 			}
 

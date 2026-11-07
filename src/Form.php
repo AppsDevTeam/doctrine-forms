@@ -16,6 +16,7 @@ class Form extends \ADT\Forms\Form
 	protected array $componentFormMappers = [];
 	protected array $componentEntityMappers = [];
 	protected array $componentEntityFactories = [];
+	protected array $componentCollectionFilters = [];
 
 	public function getEntityManager(): ?EntityManagerInterface
 	{
@@ -92,6 +93,17 @@ class Form extends \ADT\Forms\Form
 	public function setComponentEntityMapper(IComponent $component, Closure $entityMapper): self
 	{
 		$this->componentEntityMappers[spl_object_hash($component)] = $entityMapper;
+		return $this;
+	}
+
+	public function getComponentCollectionFilter(IComponent $component): ?Closure
+	{
+		return $this->componentCollectionFilters[spl_object_hash($component)] ?? null;
+	}
+
+	public function setComponentCollectionFilter(IComponent $component, Closure $collectionFilter): self
+	{
+		$this->componentCollectionFilters[spl_object_hash($component)] = $collectionFilter;
 		return $this;
 	}
 

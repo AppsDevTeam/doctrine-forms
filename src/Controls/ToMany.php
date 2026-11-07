@@ -73,8 +73,14 @@ class ToMany implements IComponentMapper
 
 		$em = $this->mapper->getEntityManager();
 		$UoW = $em->getUnitOfWork();
+		$collectionFilter = $this->mapper->getForm()->getComponentCollectionFilter($component);
 
 		foreach ($collection as $key => $relation) {
+			// entities excluded by the collection filter are not managed by this container
+			if ($collectionFilter && !$collectionFilter($relation)) {
+				continue;
+			}
+
 			// mapuj jen pri neodeslanem formulari nebo pokud nebyl radek odstranen uzivatelem
 			if (!$component->form->isSubmitted() || isset($component->getUntrustedValues('array')[$key])) {
 				if ($UoW->getSingleIdentifierValue($relation)) {
@@ -159,9 +165,15 @@ class ToMany implements IComponentMapper
 		}
 
 		$deletedCollectionEntityListener = $this->getDeletedCollectionEntityListener();
+		$collectionFilter = $this->mapper->getForm()->getComponentCollectionFilter($component);
 
 		foreach ($collection as $key => $relation) {
 			if ($collection[$key]->isNew()) {
+				continue;
+			}
+
+			// entities excluded by the collection filter are not managed by this container, so they must not be deleted either
+			if ($collectionFilter && !$collectionFilter($relation)) {
 				continue;
 			}
 
